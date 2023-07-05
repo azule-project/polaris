@@ -69,7 +69,7 @@ CatCommand connect("ipc_connect", "Connect to IPC server",
                            logging::Info("Established connection with IPC Peer.");
                            g_ICvar->ConsoleColorPrintf(MENU_COLOR, ("CAT: Loading autoexec from IPC ID assign."));
                            hack::command_stack().push("exec cat_autoexec_ipc_" + std::to_string(peer->client_id % std::max(1, *bot_chunks)));
-                           logging::Info("%d", peer->client_id % std::max(1, *bot_chunks)));
+                           logging::Info("%d", peer->client_id % std::max(1, *bot_chunks));
                        }
                        catch (std::exception &error)
                        {
