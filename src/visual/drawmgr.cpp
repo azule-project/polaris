@@ -26,9 +26,7 @@
 #include "drawmgr.hpp"
 
 static settings::Boolean info_text{ "hack-info.enable", "true" };
-static settings::Int info_style{ "hack-info.style", "0" };
-static settings::Rgba info_background_color{"hack-info.background", "00000b3"};
-static settings::Rgba info_foreground_color{"hack-info.foreground", "ffffff"};
+static settings::Boolean info_text_min{ "hack-info.minimal", "false" };
 static settings::Int info_x{"hack-info.x", "10"};
 static settings::Int info_y{"hack-info.y", "10"};
 
@@ -68,23 +66,21 @@ void BeginCheatVisuals()
 void DrawCheatVisuals()
 {
     {
-        PROF_SECTION(DRAW_info);
+        PROF_SECTION(DRAW_info)
         std::string name_s, reason_s;
-        PROF_SECTION(PT_info_text);
-        if (info_text)
+        PROF_SECTION(PT_info_text)
+        if (*info_text && (!g_IEngine->IsConnected() || g_IEngine->Con_IsVisible()))
         {
-            float w, h;
-            std::string hack_info_text;
-            if (*info_style == 0) {
-                hack_info_text = "Rosnehook InDev " + hack::GetVersion() + 
-                "\nPress '" + open_gui_button.toString() + "' to open the menu.";
-                fonts::center_screen->stringSize(hack_info_text, &w, &h);
-                draw::String(*info_x, *info_y, *info_foreground_color, hack_info_text.c_str(), *fonts::center_screen);
-            }
-            else if (*info_style == 1) {
-                hack_info_text = "Rosnehook InDev " + hack::GetVersion();
-                fonts::center_screen->stringSize(hack_info_text, &w, &h);
-                draw::String(*info_x, *info_y, *info_foreground_color, hack_info_text.c_str(), *fonts::center_screen);
+            auto color = colors::RainbowCurrent();
+            color.a    = 1.0f;
+            AddSideString("cathook by weebware", color);
+            if (!*info_text_min)
+            {
+                AddSideString(hack::GetVersion(), colors::gui); // GitHub commit and date
+                AddSideString(hack::GetType(), colors::gui);    // Compile type
+#if ENABLE_GUI
+                AddSideString("Press '" + open_gui_button.toString() + "' key to navigate the menu.", colors::gui);
+#endif
             }
         }
     }
