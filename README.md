@@ -6,73 +6,26 @@
 [![License](https://img.shields.io/github/license/explowz/cathook.svg?style=flat-square)](LICENSE)
 [![Issues](https://img.shields.io/github/issues/explowz/cathook.svg?style=flat-square)](https://github.com/rosneburgerworks/cathook/issues)
 
-Cathook, but without bloat.
+Improved version of cathook without bloat.
 
-## Bloat Removed
+## Requirements
+* A linux computer capable of running TF2.
+* Atleast 4 GB ram installed with 120 GB disk space per linux computer configuration.
 
-Minecraft Health Bar (loll)
-
-Spellforcer
-
-Uberspam
-
-Rich Presence Changer
-
-Nullnexus and Identify (removed)
-
-Startup Sounds
-
-AntiCheat (cheater detection, useless)
-Homosexual Cheat (very much homosexual) 
-
-And much, much more!
-
-## Rosnehook Features (just a bit)
-
-#### Rathook Navigation Spin
-#### Smoother Look At Path
-#### Green Navigation Draw
-#### Path During Setup on BLU
-
-## Benefits of Rosnehook (why Rosnehook over Cathook)
-
-#### Much Better Performance
-#### it deathstares tooo, so betta aimbot! 
-#### more crashing than eva! 
-#### For you guys who cannot fucking debloat bcuz yall are ape brainZ to do yourselfs! 
-#### Faster Building and other boost related stuff
-#### Catbots (Rosnebots) lasts longer
-
-## Getting started
-
-### Dependencies
-
-The `dialog` package is not mandatory, yet highly recommended.
-
-Dependencies are handled automatically by the [dependencycheck](https://github.com/rosneburgerworks/cathook/blob/master/scripts/dependencycheck) script.
-
-### Downloading
-
-Open a terminal window and enter the following command:
+## Downloading
+Open a terminal window and enter this command to your terminal:
 
     bash <(wget -qO- https://raw.githubusercontent.com/rosneburgerworks/One-in-all-cathook-install/master/install-all)
 
-The `cathook` folder should have been created successfully, containing all source files.
+This bash script will automatically installs cathook to your linux computer.
 
-### Loading / Injecting into game process
 
-Run the following command while inside the source folder:
+## Injecting
+
+When ronsehook finished installing you go to the `cathook` folder and open a terminal and enter this command:
 
     sudo ./attach
-
-This will inject `libcathook.so` into the `hl2_linux` process.
-
-When injected, the menu can be opened using the `INSERT` key.
-
-## FAQ
-
-### How do I open the menu?
-Press <kbd>INSERT</kbd> while focused on the TF2 window.
-
-### Where is my config file saved?
-Configuration files are saved inside the `cathook` folder located in your `opt` folder (`/opt/cathook/data`). The config is in human-readable format and can be edited via your text editor of choice.
+If other injection or above command did not work you can try alternative injection method to let rosnehook into your `hl2_linux` process:
+    
+    sudo ./attach-gdb
+    sudo ./attach-libnamed
