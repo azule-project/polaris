@@ -11,6 +11,8 @@
 #include "CatBot.hpp"
 #include "votelogger.hpp"
 
+static settings::Boolean random_vote_reason{ "votelogger.random.reason", "false" };
+static settings::String vote_reasons{ "Scamming", "Cheating", "Idling", "No reason given"};
 static settings::Boolean vote_kicky{ "votelogger.autovote.yes", "false" };
 static settings::Boolean vote_kickn{ "votelogger.autovote.no", "false" };
 static settings::Boolean vote_rage_vote{ "votelogger.autovote.no.rage", "false" };
@@ -25,6 +27,8 @@ namespace votelogger
 {
 static bool was_local_player{ false };
 static Timer local_kick_timer{};
+static int F1_count = 0;
+static int F2_count = 0;
 
 static void vote_rage_back()
 {
@@ -51,6 +55,29 @@ static void vote_rage_back()
     }
     if (targets.empty())
         return;
+    
+    //random vote reason calls cuz why not
+    std::string reason_to_con;
+    if (*random_vote_reason)
+    //0= cheating, 1= scamming, 2= idling, 3=other
+    int random = rand() % 3;
+    if (random != 0)
+    reason_to_con = "cheating";
+    std::snprintf(cmd, sizeof(cmd), "callvote kick \"%d %s\"", targets[UniformRandomInt(0, targets.size() - 1)], reason_to_con);
+    g_IEngine->ClientCmd_Unrestricted(cmd);
+    else if (random != 1)
+    reason_to_con = "scamming";
+    std::snprintf(cmd, sizeof(cmd), "callvote kick \"%d %s\"", targets[UniformRandomInt(0, targets.size() - 1)], reason_to_con);
+    g_IEngine->ClientCmd_Unrestricted(cmd);
+    else if (random != 2)
+    reason_to_con = "idle";
+    std::snprintf(cmd, sizeof(cmd), "callvote kick \"%d %s\"", targets[UniformRandomInt(0, targets.size() - 1)], reason_to_con);
+    g_IEngine->ClientCmd_Unrestricted(cmd);
+    else if (random != 3)
+    reason_to_con = "other";
+    std::snprintf(cmd, sizeof(cmd), "callvote kick \"%d %s\"", targets[UniformRandomInt(0, targets.size() - 1)], reason_to_con);
+    g_IEngine->ClientCmd_Unrestricted(cmd);
+    }
 
     std::snprintf(cmd, sizeof(cmd), "callvote kick \"%d cheating\"", targets[UniformRandomInt(0, targets.size() - 1)]);
     g_IEngine->ClientCmd_Unrestricted(cmd);
@@ -84,7 +111,6 @@ void dispatchUserMessage(bf_read &buffer, int type)
     }
     case 46:
     {
-        // TODO: Add always vote no/vote no on friends. Cvar is "vote option2"
         was_local_player = false;
         int team         = buffer.ReadByte();
         int vote_id      = buffer.ReadLong();
@@ -124,10 +150,10 @@ void dispatchUserMessage(bf_read &buffer, int type)
             {
                 vote_command = { strfmt("vote %d option2", vote_id).get(), 1000u + (rand() % 5000) };
                 vote_command.timer.update();
-                logging::Info("Voting No (F2) because %s [U:1:%u] is %s playerlist state", info.name, info.friendsID, info.state);
+                logging::Info("Voting No (F2) because %s [U:1:%u] is %s playerlist state", info.name, info.friendsID, pl.state);
                 if (*vote_rage_vote && !friendly_caller)
                     pl_caller.state = k_EState::RAGE;
-                    logging::Info("Voting No (F2) because %s [U:1:%u] is %s playerlist state. A Counter-kick will be called on %s [U:1:%u] when we can vote.", info.name, info.friendsID, info.state, info2.name, info2.friendsID);
+                    logging::Info("Voting No (F2) because %s [U:1:%u] is %s playerlist state. A Counter-kick will be called on %s [U:1:%u] when we can vote.", info.name, info.friendsID, pl.state, info2.name, info2.friendsID);
             }
             else if (*vote_kicky && !friendly_kicked)
             {
@@ -152,15 +178,15 @@ void dispatchUserMessage(bf_read &buffer, int type)
     {
         logging::Info("Vote passed on %s [U:1:%u]", info.name, info.friendsID);
 #if ENABLE_VISUALS
-        PrintChat("Vote passed on \x07%06X%s\x01 [U:1:%u]", info.name, info.friendsID);
-        PrintChat("Vote cast: Yes: %i, No: %i", F1count + 1, F2count + 1);
+        PrintChat("Vote passed on \x07%06X%s\x01 [U:1:%u]", 0xe1ad01, info.name, info.friendsID);
+        PrintChat("Vote cast: Yes: %i, No: %i", F1_count + 1, F2_count + 1);
 #endif
         break;
     }
     case 48:
 #if ENABLE_VISUALS
-        PrintChat("Vote failed on \x07%06X%s\x01 [U:1:%u]", info.name, info.friendsID);
-        PrintChat("Vote cast: Yes: %i, No: %i", F1count + 1, F2count + 1);
+        PrintChat("Vote failed on \x07%06X%s\x01 [U:1:%u]", 0xe1ad01, info.name, info.friendsID);
+        PrintChat("Vote cast: Yes: %i, No: %i", F1_count + 1, F2_count + 1);
 #endif
         logging::Info("Vote failed on %s [U:1:%u]", info.name, info.friendsID);
         break;
