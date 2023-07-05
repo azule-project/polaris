@@ -11,8 +11,8 @@
 #include "CatBot.hpp"
 #include "votelogger.hpp"
 
-static settings::Boolean random_vote_reason{ "votelogger.random.reason", "false" };
-static settings::String vote_reasons{ "Scamming", "Cheating", "Idling", "No reason given"};
+//static settings::Boolean random_vote_reason{ "votelogger.random.reason", "false" };
+//static settings::String vote_reasons{ "Scamming", "Cheating", "Idling", "No reason given"};
 static settings::Boolean vote_kicky{ "votelogger.autovote.yes", "false" };
 static settings::Boolean vote_kickn{ "votelogger.autovote.no", "false" };
 static settings::Boolean vote_rage_vote{ "votelogger.autovote.no.rage", "false" };
@@ -56,8 +56,7 @@ static void vote_rage_back()
     if (targets.empty())
         return;
     
-    //random vote reason calls cuz why not
-    std::string reason_to_con;
+    /*std::string reason_to_con;
     if (*random_vote_reason)
     //0= cheating, 1= scamming, 2= idling, 3=other
     int random = rand() % 3;
@@ -77,7 +76,7 @@ static void vote_rage_back()
     reason_to_con = "other";
     std::snprintf(cmd, sizeof(cmd), "callvote kick \"%d %s\"", targets[UniformRandomInt(0, targets.size() - 1)], reason_to_con);
     g_IEngine->ClientCmd_Unrestricted(cmd);
-    }
+    }*/
 
     std::snprintf(cmd, sizeof(cmd), "callvote kick \"%d cheating\"", targets[UniformRandomInt(0, targets.size() - 1)]);
     g_IEngine->ClientCmd_Unrestricted(cmd);
