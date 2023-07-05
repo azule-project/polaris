@@ -46,10 +46,13 @@ CatCommand connect("ipc_connect", "Connect to IPC server",
                        peer = std::make_unique<peer_t>(*server_name, false, false);
                        try
                        {
+                           logging::Info("Establishing connection with IPC Peer...");
+                           g_ICvar->ConsoleColorPrintf(MENU_COLOR, ("CAT: Creating IPC Peer..."));
                            peer->Connect();
                            logging::Info("peer count: %i", peer->memory->peer_count);
                            logging::Info("magic number: 0x%08x", peer->memory->global_data.magic_number);
                            logging::Info("magic number offset: 0x%08x", (uintptr_t) &peer->memory->global_data.magic_number - (uintptr_t) peer->memory);
+                           //there was a better way to setup command handlers...
                            peer->SetCommandHandler(commands::execute_client_cmd, [](const cat_ipc::Command &command, const void *payload) { hack::command_stack().emplace(reinterpret_cast<const char*>(&command.cmd_data));} );
                            peer->SetCommandHandler(commands::execute_client_cmd_long, [](const cat_ipc::Command &command, const void *payload) { hack::command_stack().emplace(static_cast<const char*>(payload)); });
                            user_data_s &data = peer->memory->peer_user_data[peer->client_id];
@@ -62,12 +65,14 @@ CatCommand connect("ipc_connect", "Connect to IPC server",
 
                            StoreClientData();
                            Heartbeat();
-                           // Load a config depending on id
+                           // load autoexec_ipc_0 and value will never change this needs debugging!!
                            hack::command_stack().push("exec cat_autoexec_ipc_" + std::to_string(peer->client_id % std::max(1, *bot_chunks)));
+                           logging::Info(std::to_string(peer->client_id % std::max(1, *bot_chunks)));
                        }
                        catch (std::exception &error)
                        {
                            logging::Info("Runtime error: %s", error.what());
+                           g_ICvar->ConsoleColorPrintf(MENU_COLOR, "Failed to connect to IPC.\n");
                            peer.reset();
                        }
                    });
@@ -99,6 +104,7 @@ CatCommand connect_ghost("ipc_connect_ghost", "Connect to ipc but do not actuall
 CatCommand disconnect("ipc_disconnect", "Disconnect from IPC server",
                       []()
                       {
+                          g_ICvar->ConsoleColorPrintf(MENU_COLOR, ("CAT: Disconnecting from IPC Peer..."));
                           peer.reset();
                       });
 
