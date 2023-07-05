@@ -124,36 +124,45 @@ void dispatchUserMessage(bf_read &buffer, int type)
             {
                 vote_command = { strfmt("vote %d option2", vote_id).get(), 1000u + (rand() % 5000) };
                 vote_command.timer.update();
+                logging::Info("Voting No (F2) because %s [U:1:%u] is %s playerlist state", info.name, info.friendsID, info.state);
                 if (*vote_rage_vote && !friendly_caller)
                     pl_caller.state = k_EState::RAGE;
+                    logging::Info("Voting No (F2) because %s [U:1:%u] is %s playerlist state. A Counter-kick will be called on %s [U:1:%u] when we can vote.", info.name, info.friendsID, info.state, info2.name, info2.friendsID);
             }
             else if (*vote_kicky && !friendly_kicked)
             {
                 vote_command = { strfmt("vote %d option1", vote_id).get(), 1000u + (rand() % 5000) };
                 vote_command.timer.update();
+                logging::Info("Voting Yes (F1) because %s [U:1:%u] is %s playerlist state.", info.name, info.friendsID);
             }
         }
         if (*chat_partysay)
         {
             char formated_string[256];
-            std::snprintf(formated_string, sizeof(formated_string), "[ROSNEHOOK] [%s] votekick called: %s => %s (%s)", team_name, info2.name, info.name, reason);
+            std::snprintf(formated_string, sizeof(formated_string), "Called votekick: %s => %s (%s)", team_name, info2.name, info.name, reason);
             re::CTFPartyClient::GTFPartyClient()->SendPartyChat(formated_string);
         }
 #if ENABLE_VISUALS
         if (*chat)
-            PrintChat("\x07%06X%s\x01 called a votekick on \x07%06X%s\x01 for the reason \"%s\"", 0xe1ad01, info2.name, 0xe1ad01, info.name, reason);
+            PrintChat("Player '\x07%06X%s\x01' has called a vote on '\x07%06X%s\x01' (\"%s\")", 0xe1ad01, info2.name, 0xe1ad01, info.name, reason);
 #endif
         break;
     }
     case 47:
     {
-        logging::Info("Vote passed");
-        // if (was_local_player && requeue)
-        //    tfmm::StartQueue();
+        logging::Info("Vote passed on %s [U:1:%u]", info.name, info.friendsID);
+#if ENABLE_VISUALS
+        PrintChat("Vote passed on \x07%06X%s\x01 [U:1:%u]", info.name, info.friendsID);
+        PrintChat("Vote cast: Yes: %i, No: %i", F1count + 1, F2count + 1);
+#endif
         break;
     }
     case 48:
-        logging::Info("Vote failed");
+#if ENABLE_VISUALS
+        PrintChat("Vote failed on \x07%06X%s\x01 [U:1:%u]", info.name, info.friendsID);
+        PrintChat("Vote cast: Yes: %i, No: %i", F1count + 1, F2count + 1);
+#endif
+        logging::Info("Vote failed on %s [U:1:%u]", info.name, info.friendsID);
         break;
     case 49:
         logging::Info("VoteSetup?");
@@ -238,7 +247,7 @@ public:
             if (*chat_partysay)
             {
                 char formated_string[256];
-                std::snprintf(formated_string, sizeof(formated_string), "[ROSNEHOOK] %s voted %s", info.name, vote_option ? "No" : "Yes");
+                std::snprintf(formated_string, sizeof(formated_string), "Player '%s' has voted %s", info.name, vote_option ? "No (F2)" : "Yes (F1)");
 
                 re::CTFPartyClient::GTFPartyClient()->SendPartyChat(formated_string);
             }
@@ -249,12 +258,12 @@ public:
                 {
                 case true:
                 {
-                    PrintChat("\x07%06X%s\x01 voted \x07%06XNo\x01", 0xe1ad01, info.name, 0x00ff00);
+                    PrintChat("\x07%06X%s\x01 has voted \x07%06XNo\x01", 0xe1ad01, info.name, 0x00ff00);
                     break;
                 }
                 case false:
                 {
-                    PrintChat("\x07%06X%s\x01 voted \x07%06XYes\x01", 0xe1ad01, info.name, 0xff0000);
+                    PrintChat("\x07%06X%s\x01 has voted \x07%06XYes\x01", 0xe1ad01, info.name, 0xff0000);
                     break;
                 }
                 }
