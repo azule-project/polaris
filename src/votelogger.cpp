@@ -93,6 +93,7 @@ struct CVRNG
 static CVRNG vote_command;
 void dispatchUserMessage(bf_read &buffer, int type)
 {
+    player_info_s info{}, info2{};
     switch (type)
     {
     case 45:
@@ -122,9 +123,6 @@ void dispatchUserMessage(bf_read &buffer, int type)
         buffer.Seek(0);
         target >>= 1;
 
-        // info is the person getting kicked,
-        // info2 is the person calling the kick.
-        player_info_s info{}, info2{};
         if (!GetPlayerInfo(target, &info) || !GetPlayerInfo(caller, &info2))
             break;
 
@@ -175,7 +173,7 @@ void dispatchUserMessage(bf_read &buffer, int type)
     }
     case 47:
     {
-        logging::Info("Vote passed on %s [U:1:%u]", info.name, info.friendsID);
+        logging::Info("Vote passed");
 #if ENABLE_VISUALS
         PrintChat("Vote passed on \x07%06X%s\x01 [U:1:%u]", 0xe1ad01, info.name, info.friendsID);
         PrintChat("Vote cast: Yes: %i, No: %i", F1_count + 1, F2_count + 1);
