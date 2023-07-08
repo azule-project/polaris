@@ -1,7 +1,0 @@
-<Tab name="Rosnebot">
-    <TabContainer width="fill" height="fill">
-        <Include path="nullifiedcat/catbot/general.xml"/>
-        <Include path="nullifiedcat/catbot/movement.xml"/>
-        <Include path="nullifiedcat/catbot/misc.xml"/>
-    </TabContainer>
-</Tab>
