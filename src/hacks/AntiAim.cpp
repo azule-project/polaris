@@ -83,7 +83,6 @@ float GetAAAATimerLength()
 void NextAAAA()
 {
     aaaa_stage++;
-    // TODO temporary..
     if (aaaa_stage > 1)
         aaaa_stage = 0;
 }
@@ -229,8 +228,8 @@ void SendNetMessage(INetMessage &msg)
 
 bool ShouldAA(CUserCmd *cmd)
 {
-    if (hacks::antibackstab::noaa)
-        return false;
+    /*if (hacks::antibackstab::noaa)
+        return false;*/
     if (cmd->buttons & IN_USE)
         return false;
     int classid = LOCAL_W->m_iClassID();
