@@ -21,6 +21,7 @@
 bld/
 [Bb]in/
 [Oo]bj/
+[Ee]xternal/
 
 # Visual Studio 2015 cache/options directory
 .vs/
@@ -283,7 +284,7 @@ cathook.cbp
 .cmake
 
 scripts/updater-preferences
-
+/external/*
 /modules/*
 /modules/*/
 !/modules/readme.md
