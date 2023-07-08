@@ -30,12 +30,12 @@ fi
 if [ "$PRE_UPDATE" == "true" ]; then
   if [ ! -x "$(command -v git)" ]; then
     # install only git
-    echo git not installed!
+    echo Git was not installed!
     ./scripts/dependencycheck true
   fi
   if [ ! -d "./.git" ]; then
     git init
-    git remote add origin https://github.com/explowz/cathook
+    git remote add origin https://github.com/weebwares/cathook
     cfg_write $configfile update_channel master
   fi
 fi
