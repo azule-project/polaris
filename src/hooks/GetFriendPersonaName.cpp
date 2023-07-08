@@ -8,8 +8,11 @@
 #include "PlayerTools.hpp"
 
 static settings::String ipc_name{ "name.ipc", "" };
+settings::String force_name{ "name.custom", "" };
 std::string name_forced;
-
+static settings::Int namesteal{ "name.namesteal", "0" };
+static settings::Boolean namesteal_reconnect("name.namesteal.reconnect", "true");
+static settings::Boolean glitchy_newlines("name.namesteal.use-newlines", "false");
 static std::string stolen_name;
 
 int getRng(int min, int max)
