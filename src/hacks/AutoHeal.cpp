@@ -87,7 +87,7 @@ std::vector<proj_data_s> proj_data_array;
 
 int ChargeCount()
 {
-    return CE_FLOAT(LOCAL_W, netvar.m_flChargeLevel) / 0.25f;
+    return (CE_FLOAT(LOCAL_W, netvar.m_flChargeLevel) / 0.25f);
 }
 
 // TODO Angle Checking
@@ -97,8 +97,9 @@ int BulletDangerValue(CachedEntity *patient)
         return 0;
     bool any_zoomed_snipers = false;
     // Find dangerous snipers in other team
-    for (const auto &ent: entity_cache::player_cache)
+    for (int i = 1; i <= g_IEngine->GetMaxClients(); i++)
     {
+        CachedEntity *ent = ENTITY(i);
         if (CE_BAD(ent))
             continue;
         if (!ent->m_bAlivePlayer() || !ent->m_bEnemy())
@@ -120,7 +121,7 @@ int BulletDangerValue(CachedEntity *patient)
         {
             if (IsEntityVisible(ent, head))
             {
-                if (playerlist::AccessData(ent->player_info->friendsID).state == playerlist::k_EState::RAGE)
+                if (playerlist::AccessData(ent).state == playerlist::k_EState::RAGE)
                     return 2;
                 else
                 {
@@ -141,8 +142,9 @@ int FireDangerValue(CachedEntity *patient)
     uint8_t should_switch = 0;
     if (auto_vacc_pop_if_pyro)
     {
-        for (const auto &ent: entity_cache::player_cache)
+        for (int i = 1; i <= g_IEngine->GetMaxClients(); i++)
         {
+            CachedEntity *ent = ENTITY(i);
             if (CE_BAD(ent))
                 continue;
             if (!ent->m_bEnemy())
@@ -213,8 +215,11 @@ int BlastDangerValue(CachedEntity *patient)
         return 1;
     }
     // Find rockets/pipes nearby
-    for (const auto &ent : entity_cache::valid_ents)
+    for (int i = PLAYER_ARRAY_SIZE; i <= HIGHEST_ENTITY; i++)
     {
+        CachedEntity *ent = ENTITY(i);
+        if (CE_BAD(ent))
+            continue;
         if (!ent->m_bEnemy())
             continue;
         if (ent->m_Type() != ENTITY_PROJECTILE)
@@ -223,7 +228,7 @@ int BlastDangerValue(CachedEntity *patient)
             continue;
         if (patient->m_vecOrigin().DistTo(ent->m_vecOrigin()) > (int) auto_vacc_proj_danger_range)
             continue;
-        proj_data_array.push_back(proj_data_s{ ent->m_IDX, ent->m_vecOrigin() });
+        proj_data_array.push_back(proj_data_s{ i, ent->m_vecOrigin() });
     }
     return 0;
 }
@@ -245,8 +250,11 @@ int NearbyEntities()
     int ret = 0;
     if (CE_BAD(LOCAL_E) || CE_BAD(LOCAL_W))
         return ret;
-    for (const auto &ent : entity_cache::valid_ents)
+    for (int i = 0; i <= HIGHEST_ENTITY; i++)
     {
+        CachedEntity *ent = ENTITY(i);
+        if (CE_BAD(ent))
+            continue;
         if (ent == LOCAL_E)
             continue;
         if (!ent->m_bAlivePlayer())
@@ -369,7 +377,7 @@ static CatCommand vaccinator_fire("vacc_fire", "Fire Vaccinator", []() { SetResi
 
 bool IsPopped()
 {
-    CachedEntity *weapon = LOCAL_W;
+    CachedEntity *weapon = g_pLocalPlayer->weapon();
     if (CE_BAD(weapon) || weapon->m_iClassID() != CL_CLASS(CWeaponMedigun))
         return false;
     return CE_BYTE(weapon, netvar.bChargeRelease);
@@ -381,6 +389,15 @@ bool ShouldChargePlayer(int idx)
     const float damage_accum_duration = g_GlobalVars->curtime - data[idx].accum_damage_start;
     const int health                  = target->m_iHealth();
 
+    // Uber on "CHARGE ME DOCTOR!"
+    if (pop_uber_voice)
+    {
+        // Hey you wanna get deleted?
+        auto uber_array = std::move(called_medic);
+        for (auto i : uber_array)
+            if (i == idx)
+                return true;
+    }
     if (health > g_pPlayerResource->GetMaxHealth(target))
         return false;
     if (!data[idx].accum_damage_start)
@@ -421,32 +438,34 @@ bool IsVaccinator()
 
 void UpdateData()
 {
-    for (const auto &ent: entity_cache::player_cache)
+    for (int i = 1; i <= MAX_PLAYERS; i++)
     {
-        if (reset_cd[ent->m_IDX].test_and_set(10000))
-            data[ent->m_IDX] = {};
+        if (reset_cd[i].test_and_set(10000))
+            data[i] = {};
+        CachedEntity *ent = ENTITY(i);
         if (CE_GOOD(ent) && ent->m_bAlivePlayer())
         {
             int health = ent->m_iHealth();
-            if (data[ent->m_IDX].last_damage > g_GlobalVars->curtime)
-                data[ent->m_IDX].last_damage = 0.0f;
-
-            if (g_GlobalVars->curtime - data[ent->m_IDX].last_damage > 5.0f)
+            if (data[i].last_damage > g_GlobalVars->curtime)
             {
-                data[ent->m_IDX].accum_damage       = 0;
-                data[ent->m_IDX].accum_damage_start = 0.0f;
+                data[i].last_damage = 0.0f;
             }
-            const int last_health = data[ent->m_IDX].last_health;
+            if (g_GlobalVars->curtime - data[i].last_damage > 5.0f)
+            {
+                data[i].accum_damage       = 0;
+                data[i].accum_damage_start = 0.0f;
+            }
+            const int last_health = data[i].last_health;
             if (health != last_health && health <= g_pPlayerResource->GetMaxHealth(ent))
             {
-                reset_cd[ent->m_IDX].update();
-                data[ent->m_IDX].last_health = health;
+                reset_cd[i].update();
+                data[i].last_health = health;
                 if (health < last_health)
                 {
-                    data[ent->m_IDX].accum_damage += (last_health - health);
-                    if (!data[ent->m_IDX].accum_damage_start)
-                        data[ent->m_IDX].accum_damage_start = g_GlobalVars->curtime;
-                    data[ent->m_IDX].last_damage = g_GlobalVars->curtime;
+                    data[i].accum_damage += (last_health - health);
+                    if (!data[i].accum_damage_start)
+                        data[i].accum_damage_start = g_GlobalVars->curtime;
+                    data[i].last_damage = g_GlobalVars->curtime;
                 }
             }
         }
@@ -479,7 +498,7 @@ bool CanHeal(int idx)
         return false;
     if (IsPlayerInvisible(ent))
         return false;
-    if (friendsonly && !playerlist::IsFriend(ent->player_info->friendsID))
+    if (friendsonly && !playerlist::IsFriend(ent))
         return false;
     if (!heal_disguised && IsPlayerDisguised(ent))
         return false;
@@ -508,17 +527,25 @@ int HealingPriority(int idx)
     }
 
     CachedEntity *ent = ENTITY(idx);
+     if (!ent)
+        return false;
+    if (CE_BAD(ent))
+        return false;
+        
     if (share_uber && IsPopped())
+    {
         return !HasCondition<TFCond_Ubercharged>(ent);
+    }
 
+        
     int priority        = 0;
-    int health          = ent->m_iHealth();
-    int maxhealth       = ent->m_iMaxHealth();
+    int health          = CE_INT(ent, netvar.iHealth);
+    int maxhealth       = g_pPlayerResource->GetMaxHealth(ent);
     int maxbuffedhealth = maxhealth * 1.5;
     int maxoverheal     = maxbuffedhealth - maxhealth;
     int overheal        = maxoverheal - (maxbuffedhealth - health);
-    float overhealp     = (float) overheal / (float) maxoverheal;
-    float healthp       = (float) health / (float) maxhealth;
+    float overhealp     = ((float) overheal / (float) maxoverheal);
+    float healthp       = ((float) health / (float) maxhealth);
     // Base Class priority
     priority += hacks::followbot::ClassPriority(ent) * 1.3;
 
@@ -527,7 +554,7 @@ int HealingPriority(int idx)
         return 0.0f;
     // Healthpoint priority
     float healpp = **class_list[g_pPlayerResource->GetClass(ent) - 1];
-    switch (playerlist::AccessData(ent->player_info->friendsID).state)
+    switch (playerlist::AccessData(ent).state)
     {
     case playerlist::k_EState::PARTY:
     case playerlist::k_EState::FRIEND:
@@ -548,14 +575,14 @@ int HealingPriority(int idx)
         priority += healpp / 3 * (1 - overhealp);
     }
 #if ENABLE_IPC
-    if (ipc::peer && hacks::followbot::isEnabled() && hacks::followbot::follow_target == idx)
-        priority *= 6.0f;
+    if (ipc::peer)
+    {
+        if (hacks::followbot::isEnabled() && hacks::followbot::follow_target == idx)
+        {
+            priority *= 6.0f;
+        }
+    }
 #endif
-    /*  player_info_s info;
-        GetPlayerInfo(idx, &info);
-        info.name[31] = 0;
-        if (strcasestr(info.name, ignore.GetString()))
-            priority = 0.0f;*/
     return priority;
 }
 
@@ -565,19 +592,19 @@ int BestTarget()
     int best_score = INT_MIN;
     if (steamid_only)
         return best;
-    for (const auto &ent: entity_cache::player_cache)
+    for (int i = 0; i <= g_IEngine->GetMaxClients(); i++)
     {
-        int score = HealingPriority(ent->m_IDX);
+        int score = HealingPriority(i);     
         if (score > best_score && score != -1)
         {
-            best       = ent->m_IDX;
+            best       = i;
             best_score = score;
         }
     }
     return best;
 }
 
-static void CreateMove()
+void CreateMove()
 {
     if (CE_BAD(LOCAL_W))
         return;
@@ -588,9 +615,13 @@ static void CreateMove()
         DoResistSwitching();
         int my_opt = OptimalResistance(LOCAL_E, &pop);
         if (my_opt >= 0 && my_opt != CurrentResistance())
+        {
             SetResistance(my_opt);
+        }
         if (pop && CurrentResistance() == my_opt)
+        {
             current_user_cmd->buttons |= IN_ATTACK2;
+        }
     }
     if ((!steamid && !enable) || GetWeaponMode() != weapon_medigun)
         return;
@@ -602,67 +633,67 @@ static void CreateMove()
         {
             CachedEntity *current_ent = ENTITY(CurrentHealingTargetIDX);
             if (CE_GOOD(current_ent))
-                current_id = current_ent->player_info->friendsID;
+                current_id = current_ent->player_info.friendsID;
         }
         if (current_id != steamid)
         {
-            for (const auto &ent : entity_cache::player_cache)
+            for (int i = 1; i <= g_IEngine->GetMaxClients(); i++)
             {
-                if (!ent->player_info->friendsID)
+                CachedEntity *ent = ENTITY(i);
+                if (CE_BAD(ent) || !ent->player_info.friendsID)
                     continue;
-                if (ent->player_info->friendsID == steamid && CanHeal(ent->m_IDX))
+                if (ent->player_info.friendsID == steamid && CanHeal(i))
                 {
-                    CurrentHealingTargetIDX = ent->m_IDX;
+                    CurrentHealingTargetIDX = i;
                     healing_steamid         = true;
                     break;
                 }
             }
         }
         else
+        {
             healing_steamid = true;
+        }
     }
 
     if (CurrentHealingTargetIDX && (CE_BAD(ENTITY(CurrentHealingTargetIDX)) || !CanHeal(CurrentHealingTargetIDX)))
         CurrentHealingTargetIDX = 0;
 
-    // if no target or after 2 seconds, pick new target
-    if (enable && (!CurrentHealingTargetIDX || g_GlobalVars->tickcount % 132 == 0) && !healing_steamid)
-        CurrentHealingTargetIDX = BestTarget();
+    if (enable)
+    {
+        // if no target or after 2 seconds, pick new target
+        if (!CurrentHealingTargetIDX || ((g_GlobalVars->tickcount % 132) == 0 && !healing_steamid))
+        {
+            CurrentHealingTargetIDX = BestTarget();
+        }
+    }
 
     UpdateData();
 
     if (!CurrentHealingTargetIDX)
         return;
 
-    CachedEntity *target = ENTITY(CurrentHealingTargetIDX);
+    CachedEntity *target          = ENTITY(CurrentHealingTargetIDX);
     bool target_is_healing_target = HandleToIDX(CE_INT(LOCAL_W, netvar.m_hHealingTarget)) == CurrentHealingTargetIDX;
-    auto out                      = target->hitboxes.GetHitbox(spine_2);
-    if (out)
+
+    if (!target_is_healing_target || look_at_target)
     {
-        if (silent)
-            g_pLocalPlayer->bUseSilentAngles = true;
-
-        // Follow the target using slowaim
-        if (target_is_healing_target && look_at_target)
+        auto out = target->hitboxes.GetHitbox(spine_2);
+        if (out)
         {
-            Vector angles = GetAimAtAngles(g_pLocalPlayer->v_Eye, out->center);
-            hacks::misc_aimbot::DoSlowAim(angles);
+            if (silent)
+                g_pLocalPlayer->bUseSilentAngles = true;
+            auto angles = GetAimAtAngles(g_pLocalPlayer->v_Eye, out->center);
+
+            // If we are already healing our target, then follow the target using slowaim
+            if (target_is_healing_target)
+                hacks::misc_aimbot::DoSlowAim(angles);
+
             current_user_cmd->viewangles = angles;
+            if (!target_is_healing_target && (g_GlobalVars->tickcount % 2) == 0)
+                current_user_cmd->buttons |= IN_ATTACK;
         }
-
-        // Set angles to new target
-        if (!target_is_healing_target)
-            current_user_cmd->viewangles = GetAimAtAngles(g_pLocalPlayer->v_Eye, out->center);
     }
-
-    int autoheal_mode = g_ICvar->FindVar("tf_medigun_autoheal")->GetInt();
-    // Hold down if we are currently healing our target or not healing anyone
-    if (autoheal_mode == 0 && (target_is_healing_target || CE_INT(LOCAL_W, netvar.m_hHealingTarget) == -1))
-        current_user_cmd->buttons |= IN_ATTACK;
-
-    // Press once if we are not healing our target
-    else if (autoheal_mode == 1 && !target_is_healing_target)
-        current_user_cmd->buttons |= IN_ATTACK;
 
     if (IsVaccinator() && CE_GOOD(target) && auto_vacc)
     {
@@ -670,19 +701,14 @@ static void CreateMove()
         if (!pop && opt != -1)
             SetResistance(opt);
         if (pop && CurrentResistance() == opt)
+        {
             current_user_cmd->buttons |= IN_ATTACK2;
+        }
     }
-    else if (pop_uber_auto && ShouldPop())
-        current_user_cmd->buttons |= IN_ATTACK2;
-
-    // Uber on "CHARGE ME DOCTOR!"
-    if (pop_uber_voice)
+    else
     {
-        // Hey you wanna get deleted?
-        auto uber_array = std::move(called_medic);
-        for (auto i : uber_array)
-            if (i == CurrentHealingTargetIDX)
-                current_user_cmd->buttons |= IN_ATTACK2;
+        if (pop_uber_auto && ShouldPop())
+            current_user_cmd->buttons |= IN_ATTACK2;
     }
 }
 
