@@ -121,7 +121,7 @@ int BulletDangerValue(CachedEntity *patient)
         {
             if (IsEntityVisible(ent, head))
             {
-                if (playerlist::AccessData(ent).state == playerlist::k_EState::RAGE)
+                if (playerlist::AccessData(ent->player_info->friendsID).state == playerlist::k_EState::RAGE)
                     return 2;
                 else
                 {
@@ -498,7 +498,7 @@ bool CanHeal(int idx)
         return false;
     if (IsPlayerInvisible(ent))
         return false;
-    if (friendsonly && !playerlist::IsFriend(ent))
+    if (friendsonly && !playerlist::IsFriend(ent->player_info->friendsID))
         return false;
     if (!heal_disguised && IsPlayerDisguised(ent))
         return false;
@@ -554,7 +554,7 @@ int HealingPriority(int idx)
         return 0.0f;
     // Healthpoint priority
     float healpp = **class_list[g_pPlayerResource->GetClass(ent) - 1];
-    switch (playerlist::AccessData(ent).state)
+    switch (playerlist::AccessData(ent->player_info->friendsID).state)
     {
     case playerlist::k_EState::PARTY:
     case playerlist::k_EState::FRIEND:
@@ -633,16 +633,16 @@ void CreateMove()
         {
             CachedEntity *current_ent = ENTITY(CurrentHealingTargetIDX);
             if (CE_GOOD(current_ent))
-                current_id = current_ent->player_info.friendsID;
+                current_id = current_ent->player_info->friendsID;
         }
         if (current_id != steamid)
         {
             for (int i = 1; i <= g_IEngine->GetMaxClients(); i++)
             {
                 CachedEntity *ent = ENTITY(i);
-                if (CE_BAD(ent) || !ent->player_info.friendsID)
+                if (CE_BAD(ent) || !ent->player_info->friendsID)
                     continue;
-                if (ent->player_info.friendsID == steamid && CanHeal(i))
+                if (ent->player_info->friendsID == steamid && CanHeal(i))
                 {
                     CurrentHealingTargetIDX = i;
                     healing_steamid         = true;
