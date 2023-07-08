@@ -52,8 +52,8 @@ CatCommand connect("ipc_connect", "Connect to IPC server",
                            logging::Info("peer count: %i", peer->memory->peer_count);
                            logging::Info("magic number: 0x%08x", peer->memory->global_data.magic_number);
                            logging::Info("magic number offset: 0x%08x", (uintptr_t) &peer->memory->global_data.magic_number - (uintptr_t) peer->memory);
-                           peer->SetCommandHandler(commands::execute_client_cmd, [](cat_ipc::command_s &command, void *payload) { hack::command_stack().push(std::string((const char *) &command.cmd_data)); });
-                           peer->SetCommandHandler(commands::execute_client_cmd_long, [](cat_ipc::command_s &command, void *payload) { hack::command_stack().push(std::string((const char *) payload)); });
+                           peer->SetCommandHandler(commands::execute_client_cmd, [](const cat_ipc::Command &command, const void *payload) { hack::command_stack().emplace(reinterpret_cast<const char*>(&command.cmd_data));} );
+                           peer->SetCommandHandler(commands::execute_client_cmd_long, [](const cat_ipc::Command &command, const void *payload) { hack::command_stack().emplace(static_cast<const char*>(payload)); });
                            user_data_s &data = peer->memory->peer_user_data[peer->client_id];
 
                            // Preserve accumulated data
