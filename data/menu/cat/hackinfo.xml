@@ -1,0 +1,34 @@
+<Tab name="Hack" padding="4 4 4 4">
+    <Box padding="12 6 6 6" width="content" height="content" name="Debug">
+        <List width="167">
+            <AutoVariable width="fill" target="misc.debug-info" label="Debug"/>
+            <AutoVariable width="fill" target="hack.log-console" label="Log debug info"/>
+            <AutoVariable width="fill" target="debug.engine-pred-others" label="Engine pred others"/>
+            <AutoVariable width="fill" target="debug.join-wait-time" label="Joinspam wait time"/>
+            <AutoVariable width="fill" target="debug.log-dispatch-user-msg" label="Log DUMs" tooltip="Dispatched User Messages."/>
+            <AutoVariable width="fill" target="debug.log-sent-chat" label="Log sent chat"/>
+            <AutoVariable width="fill" target="debug.pp-extrapolate" label="PP extrapolate"/>
+            <AutoVariable width="fill" target="debug.pp-rocket-time-ping" label="PP rocket time ping"/>
+            <AutoVariable width="fill" target="debug.projectiles" label="Debug projectiles"/>
+            <AutoVariable width="fill" target="debug.tcm" label="Debug TCM"/>
+            <AutoVariable width="fill" target="aimbot.debug" label="Debug aimbot"/>
+            <AutoVariable width="fill" target="aimbot.debug.engine-pp" label="Debug engine PP"/>
+        </List>
+    </Box>
+    <Box height="content" width="content" padding="12 6 6 6" name="Weebware"  x="180">
+        <List width="150">
+            <AutoVariable width="fill" target="hack.enable" label="Enable Weebware" tooltip="Weebware"/>
+            <AutoVariable width="fill" target="hack-info.enable" label="Enable Label" tooltip="Changes how weebware should display itself as."/>
+            <LabeledObject width="fill" label="Infobox style">
+                <Select target="hack-info.style">
+                    <Option name="Default" value="0"/>
+                    <Option name="Rathook" value="1"/>
+                </Select>
+            </LabeledObject>
+            <AutoVariable width="fill" target="hack-info.x" label="X position"/>
+            <AutoVariable width="fill" target="hack-info.y" label="Y position"/>
+            <AutoVariable width="fill" target="hack-info.size" label="Size"/>
+            <AutoVariable width="fill" target="hack-info.alpha" label="Transparency"/>
+        </List>
+    </Box>
+</Tab>

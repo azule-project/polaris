@@ -1,5 +1,5 @@
-<Tab name="AntiAim" padding="4 4 4 4">
-    <Box padding="12 6 6 6" width="content" height="content" name="Anti Aim Settings">
+<Tab name="HvH" padding="4 4 4 4">
+    <Box padding="12 6 6 6" width="content" height="content" name="Anti-aim">
         <List width="150">
             <AutoVariable width="fill" target="antiaim.enable" label="Enable"/>
             <AutoVariable width="fill" target="antiaim.draw-fakes" label="Draw fakes"/>
@@ -78,7 +78,7 @@
     </Box>
     <Box padding="12 6 6 6" width="content" height="content" name="Resolver" x="170">
         <List width="150">
-            <AutoVariable width="fill" target="anti-anti-aim.enable" label="Enable" tooltip="Attempts to bruteforce enemy's antiaim."/>
+            <AutoVariable width="fill" target="anti-anti-aim.enable" label="Enable" tooltip="Attempt to bruteforce enemy antiaim"/>
         </List>
     </Box>
     <Box padding="12 6 6 6" name="Anti-resolver" width="content" height="content" x="340">
@@ -90,10 +90,10 @@
             <AutoVariable width="fill" target="antiaim.aaaa.interval.random-high" label="Random high"/>
             <LabeledObject width="fill" label="Mode">
                 <Select target="antiaim.aaaa.mode">
-                    <Option name="(Fake) Up" value="0"/>
-                    <Option name="(Fake) Down" value="1"/>
-                    <Option name="(Fake) Center" value="2"/>
-		    <Option name="(Real) Up" value="4"/>
+                    <Option name="(Fake)up" value="0"/>
+                    <Option name="(Fake)down" value="1"/>
+                    <Option name="(Fake)center" value="2"/>
+					<Option name="(Real)up" value="4"/>
                 </Select>
             </LabeledObject>
         </List>

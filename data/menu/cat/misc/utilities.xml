@@ -1,0 +1,77 @@
+<Tab name="Utilities" padding="4 4 4 4">
+    <Box name="Autojoin" width="content" height="content" padding="12 6 6 6">
+        <List width="200">
+            <AutoVariable width="fill" target="autojoin.auto-queue" label="Auto queue" tooltip="Automatically starts casual queue."/>
+            <AutoVariable width="fill" target="autojoin.auto-requeue" label="Auto requeue" tooltip="Automatically requeues for another casual match."/>
+            <AutoVariable width="fill" target="autoqueue.mode" label="Autoqueue mode" min="0" max="12"/>
+            <LabeledObject width="fill" label="Autojoin class" tooltip="Automatically pick a class">
+                <Select target="autojoin.class">
+                    <Option name="None" value="0"/>
+                    <Option name="Scout" value="1"/>
+                    <Option name="Sniper" value="2"/>
+                    <Option name="Soldier" value="3"/>
+                    <Option name="Demoman" value="4"/>
+                    <Option name="Medic" value="5"/>
+                    <Option name="Heavy" value="6"/>
+                    <Option name="Pyro" value="7"/>
+                    <Option name="Spy" value="8"/>
+                    <Option name="Engineer" value="9"/>
+                    <Option name="Random" value="10"/>
+                </Select>
+            </LabeledObject>
+             <LabeledObject width="fill" label="Join team" tooltip="Joins a team.">
+                <Select target="join.team">
+                    <Option name="RED" value="0"/>
+                    <Option name="BLU" value="1"/>
+                    <Option name="Spectator" value="2"/>
+                </Select>
+                </LabeledObject>
+            <AutoVariable width="fill" target="autojoin.team" label="Auto join team" tooltip="Automatically joins a team."/>
+        </List>
+    </Box>
+    <Box name="Bot Utilities" width="content" height="content" padding="12 6 6 6" x="215">
+        <List width="200">
+            <AutoVariable width="fill" target="cat-bot.abandon-if.enable" label="Enable Abandon"/>
+            <AutoVariable width="fill" target="cat-bot.requeue-if.humans-lte" label="Requeue if player remain" tooltip="Requeues if this many player remains on a server."/>
+            <AutoVariable width="fill" target="cat-bot.abandon-if.bots-gte" label="Abandon if bots remain" tooltip="Abandons match if this amount of bots is on a server."/>
+            <AutoVariable width="fill" target="cat-bot.abandon-if.ipc-bots-gte" label="Abandon if IPC remain" tooltip="Abandons match if this many IPC client remains on a server."/>
+            <AutoVariable width="fill" target="cat-bot.abandon-if.humans-lte" label="Abandon if humans remain" tooltip="Abandons match if this humans? remains on a server."/>
+            <AutoVariable width="fill" target="cat-bot.abandon-if.players-lte" label="Abandon if players remain" tooltip="Abandons match if this many players on a server."/>
+            <AutoVariable width="fill" target="cat-bot.abandon-if.team-lte" label="Abandon if team remain" tooltip="Abandons match if this many team? on a server."/>
+            <AutoVariable width="fill" target="cat-bot.auto-crouch" label="Auto crouch" tooltip="Automatically starts crouching."/>
+            <AutoVariable width="fill" target="cat-bot.always-crouch" label="Always crouch" tooltip="Always start crouching (Overrides Auto crouch)."/>
+            <AutoVariable width="fill" target="cat-bot.micspam.enable" label="Mic spam" tooltip="Enables spamming through voice chat."/>
+            <AutoVariable width="fill" target="cat-bot.micspam.interval-off" label="Mic spam interval off" tooltip="When we should start mic spamming."/>
+            <AutoVariable width="fill" target="cat-bot.micspam.interval-on" label="Mic spam interval on" tooltip="When we should stop mic spamming."/>
+            <AutoVariable width="fill" target="cat-bot.anti-autobalance" label="Anti auto balance" tooltip="Prevents this current player to be auto balanced to the opposite team."/>
+            <AutoVariable width="fill" target="misc.autodisguise" label="Auto disguise"  tooltip="Automatically disguise (Spy)."/>
+            <AutoVariable width="fill" target="cat-bot.anti-motd" label="No MOTD" tooltip="Disables MOTD."/>
+            <AutoVariable width="fill" target="cat-bot.autovote-map" label="Auto vote for current map" tooltip="Automatically votes for current map (Casual only)."/>
+        </List>
+    </Box>
+    <Box name="Vote Utilities" width="content" height="content" padding="12 6 6 6" y="120">
+        <List width="200">
+            <AutoVariable width="fill" target="votekicks.enabled" label="Votekick"/>
+            <LabeledObject width="fill" label="Votekick Mode">
+                <Select target="votekicks.mode">
+                    <Option name="Smart" value="0"/>
+                    <Option name="Random" value="1"/>
+                    <Option name="Sequential" value="2"/>
+                </Select>
+            </LabeledObject>
+            <AutoVariable width="fill" target="votelogger.autovote.yes" label="Autovote yes" tooltip="Automatically votes yes depending on target status."/>
+            <AutoVariable width="fill" target="votelogger.autovote.no" label="Autovote no" tooltip="Automatically votes no depending on target status."/>
+            <AutoVariable width="fill" target="votelogger.autovote.wait" label="Autovote wait" tooltip="Wait before we will automatically vote."/>
+            <AutoVariable width="fill" target="votelogger.autovote.wait.min" label="Wait min (ms)" tooltip="Wait minimum in miliseconds."/>
+            <AutoVariable width="fill" target="votelogger.autovote.wait.max" label="Wait max (ms)" tooltip="Wait maximum in miliseconds."/>
+            <AutoVariable width="fill" target="votelogger.autovote.no.rage" label="Kick RAGE status" tooltip="Votes no on RAGE status player call votes."/>
+            <AutoVariable width="fill" target="votelogger.leave-after-local-vote" label="Abandon on local vote" tooltip="Abandon matchmaking server after calling vote."/>
+            <AutoVariable width="fill" target="votelogger.requeue-on-kick" label="Requeue on kick" tooltip="Requeue if getting kicked. Note: Queue will stop if vote fails."/>
+            <AutoVariable width="fill" target="votekicks.timer" label="Votekick Timer" tooltip="Votekick Timer."/>
+            <AutoVariable width="fill" target="votekicks.rage-only" label="Rage Only" tooltip="Only call a vote kick on RAGE status player."/>
+            <AutoVariable width="fill" target="votekicks.prioritize.rage" label="Prioritize Rage" tooltip="Prioritizes RAGE status players."/>
+            <AutoVariable width="fill" target="votekicks.prioritize.previous" label="Prioritize Previous" tooltip="Prioritizes Previous ? players."/>
+            <AutoVariable width="fill" target="votekicks.prioritize.highest-score" label="Prioritize Score" tooltip="Prioritizes players with this amount of score."/>
+        </List>
+    </Box>
+</Tab>

@@ -1,0 +1,25 @@
+<Tab name="Rich Presence" padding="4 4 4 4">
+    <Box padding="12 6 6 6" width="content" height="content" name="Rich Presence">
+        <List width="200">
+            <AutoVariable width="fill" target="steam.presence-enable" label="Enable RSP"
+                          tooltip="Enable Steam rich presence"/>
+            <AutoVariable width="fill" target="steam.presence-override" label="Override Menu"
+                          tooltip="Overrides default match state even in the main menu"/>
+            <AutoVariable width="fill" target="steam.presence-value" label="Custom String"
+                          tooltip="Changes map state to a custom value. Once in a server, this cannot be changed"/>
+            <AutoVariable width="fill" target="steam.presence-group" label="Party Size"
+                          tooltip="Changes total party size"/>
+            <AutoVariable width="fill" target="steam.presence-marquee" label="Marquee"
+                          tooltip="Applies a scrolling effect to the string"/>
+            <LabeledObject width="fill" label="Match State" tooltip="Changes the game state">
+                <Select target="steam.presence-match">
+                    <Option name="Special Event" value="0"/>
+                    <Option name="Mann Up" value="1"/>
+                    <Option name="Competitive" value="2"/>
+                    <Option name="Casual" value="3"/>
+                    <Option name="Boot Camp" value="4"/>
+                </Select>
+            </LabeledObject>
+        </List>
+    </Box>
+</Tab>

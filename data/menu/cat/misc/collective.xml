@@ -1,0 +1,37 @@
+<Tab name="Collective" padding="4 4 4 4">
+    <Box height="content" width="content" padding="12 6 6 6" name="Collective">
+        <List width="200">
+            <AutoVariable width="fill" target="misc.anti-afk" label="Enable antiafk"/>
+            <AutoVariable width="fill" target="misc.full-auto" label="Fully automated firing"/>
+            <AutoVariable width="fill" target="misc.show-spectators" label="Show spectators"/>
+            <AutoVariable width="fill" target="misc.animfix.enabled" label="Player Anim Fix"/>        
+            <AutoVariable width="fill" target="debug.join-wait-time" label="Joinspam wait time"/>
+            <AutoVariable width="fill" target="anti-pazer.enable" label="AntiPazer" tooltip="Will abandon if a trusted pazer user joins our game"/>
+        </List>
+    </Box>
+    <Box height="content" width="content" padding="12 6 6 6" name="Fake name" x="215">
+        <List width="200">
+            <AutoVariable width="fill" target="name.custom" label="Custom name"/>
+            <AutoVariable width="fill" target="name.custom.ipc" label="IPC name"/>
+            <LabeledObject width="fill" label="Namesteal">
+                <Select target="name.namesteal">
+                    <Option name="Disabled" value="0"/>
+                    <Option name="Passive" value="1"/>
+                    <Option name="Active" value="2"/>
+                </Select>
+            </LabeledObject>
+            <AutoVariable width="fill" target="name.namesteal.reconnect" label="Namesteal reconnect"/>
+            <AutoVariable width="fill" target="name.namesteal.use-newlines" label="Namesteal newlines" tooltip="Use glitchy newlines, will make your name invisible"/>
+            <AutoVariable width="fill" target="misc.random-name" label="Random name"/>
+            <AutoVariable width="fill" target="debug.pp-steps" label="Aimbot Stabalizer"/>
+        </List>
+    </Box>
+    <Box height="content" width="content" padding="12 6 6 6" name="Extra" y="100">
+        <List width="200">
+            <AutoVariable width="fill" target="noisemaker-spam.enable" label="Noisemaker spam"/>
+            <AutoVariable width="fill" target="player-tools.ignore.taunting" label="Ignore taunting players"/>
+            <AutoVariable width="fill" target="chat.identify" label="Identify" tooltip="Will send an identification packet to other cathook users every 15ish seconds"/>
+            <AutoVariable width="fill" target="chat.identify.log-party" label="Partylog Identify"/>
+        </List>
+    </Box>
+</Tab>

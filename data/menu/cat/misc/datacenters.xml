@@ -1,0 +1,15 @@
+<Tab name="Data centers" padding="4 4 4 4">
+    <Box height="content" width="content" padding="12 6 6 6" name="Data centers">
+        <List width="250">
+            <AutoVariable width="fill" target="dc.enable" label="Enable datacenter selector" tooltip="Enables datacenter selector."/>
+            <AutoVariable width="fill" target="dc.restrict" label="Find only selected regions" tooltip="Forces game coordinator to only search for regions selected in the region list."/>
+            <AutoVariable width="fill" target="dc.toggle-europe" label="Toggle Europe" tooltip="Queues for Europe servers."/>
+            <AutoVariable width="fill" target="dc.toggle-north-america" label="Toggle North America" tooltip="Queues for NA (North America) servers."/>
+            <AutoVariable width="fill" target="dc.toggle-south-america" label="Toggle South America"  tooltip="Queues for SA (South America) servers."/>
+            <AutoVariable width="fill" target="dc.toggle-asia" label="Toggle Asia"  tooltip="Queues for Asia servers."/>
+            <AutoVariable width="fill" target="dc.toggle-oceania" label="Toggle Oceania"  tooltip="Queues for Oceania (Australia) servers."/>
+            <AutoVariable width="fill" target="dc.toggle-africa" label="Toggle Africa"  tooltip="Queues for Africa servers."/>
+            <AutoVariable width="fill" target="dc.regions" label="Region list"  tooltip="(Advanced users only): Enter region which you want to queue for."/>
+        </List>
+    </Box>
+</Tab>
