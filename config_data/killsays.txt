@@ -1,3 +1,5 @@
 REPLACE CONTENTS OF THIS FILE WITH ACTUAL KILLSAYS.
 Usable killsay macros: 
 %team% %class% %killer% %name% %myteam% %myclass% \n
+I am going to cutely murder you %team%~
+I am playing better as %myclass% class, I think you should stop playing as %class% class, %name%.
