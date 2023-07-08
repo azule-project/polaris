@@ -37,7 +37,7 @@
 class CBoneSetup
 {
 public:
-    CBoneSetup(const CStudioHdr *pStudioHdr, int boneMask, const float poseParameter[], IPoseDebugger *pPoseDebugger = NULL);
+    CBoneSetup(const CStudioHdr *pStudioHdr, int boneMask, const float poseParameter[], IPoseDebugger *pPoseDebugger = nullptr);
     void InitPose(Vector pos[], Quaternion q[]);
     void AccumulatePose(Vector pos[], Quaternion q[], int sequence, float cycle, float flWeight, float flTime, CIKContext *pIKContext);
     void CalcAutoplaySequences(Vector pos[], Quaternion q[], float flRealTime, CIKContext *pIKContext);
@@ -170,7 +170,7 @@ matrix3x4_t *CBoneCache::GetCachedBone(int studioIndex)
     {
         return BoneArray() + cachedIndex;
     }
-    return NULL;
+    return nullptr;
 }
 
 void CBoneCache::ReadCachedBones(matrix3x4_t *pBoneToWorld)
@@ -536,8 +536,8 @@ void SetupSingleBoneMatrix(CStudioHdr *pOwnerHdr, int nSequence, int iFrame, int
     // look up animation if found, if not, initialize
     if (panim && seqdesc.weight(iBone) > 0)
     {
-        CalcBoneQuaternion(iLocalFrame, s, pbone, NULL, panim, boneQuat);
-        CalcBonePosition(iLocalFrame, s, pbone, NULL, panim, bonePos);
+        CalcBoneQuaternion(iLocalFrame, s, pbone, nullptr, panim, boneQuat);
+        CalcBonePosition(iLocalFrame, s, pbone, nullptr, panim, bonePos);
     }
     else if (animdesc.flags & STUDIO_DELTA)
     {
@@ -1008,7 +1008,7 @@ static void CalcAnimation(const CStudioHdr *pStudioHdr, Vector *pos, Quaternion 
             }
         }
 
-        CalcZeroframeData(pStudioHdr, pStudioHdr->GetRenderHdr(), NULL, pStudioHdr->pBone(0), animdesc, fFrame, pos, q, boneMask, 1.0);
+        CalcZeroframeData(pStudioHdr, pStudioHdr->GetRenderHdr(), nullptr, pStudioHdr->pBone(0), animdesc, fFrame, pos, q, boneMask, 1.0);
 
         return;
     }
@@ -1050,7 +1050,7 @@ static void CalcAnimation(const CStudioHdr *pStudioHdr, Vector *pos, Quaternion 
     // cross fade in previous zeroframe data
     if (flStall > 0.0f)
     {
-        CalcZeroframeData(pStudioHdr, pStudioHdr->GetRenderHdr(), NULL, pStudioHdr->pBone(0), animdesc, fFrame, pos, q, boneMask, flStall);
+        CalcZeroframeData(pStudioHdr, pStudioHdr->GetRenderHdr(), nullptr, pStudioHdr->pBone(0), animdesc, fFrame, pos, q, boneMask, flStall);
     }
 
     if (animdesc.numlocalhierarchy)
@@ -1184,7 +1184,7 @@ void WorldSpaceSlerp(const CStudioHdr *pStudioHdr, Quaternion q1[MAXSTUDIOBONES]
     CBoneBitList targetBoneComputed;
 
     virtualmodel_t *pVModel         = pStudioHdr->GetVirtualModel();
-    const virtualgroup_t *pSeqGroup = NULL;
+    const virtualgroup_t *pSeqGroup = nullptr;
     if (pVModel)
     {
         pSeqGroup = pVModel->pSeqGroup(sequence);
@@ -1296,7 +1296,7 @@ void SlerpBones(const CStudioHdr *pStudioHdr, Quaternion q1[MAXSTUDIOBONES], Vec
 
     int i, j;
     virtualmodel_t *pVModel         = pStudioHdr->GetVirtualModel();
-    const virtualgroup_t *pSeqGroup = NULL;
+    const virtualgroup_t *pSeqGroup = nullptr;
     if (pVModel)
     {
         pSeqGroup = pVModel->pSeqGroup(sequence);
@@ -1432,7 +1432,7 @@ void BlendBones(const CStudioHdr *pStudioHdr, Quaternion q1[MAXSTUDIOBONES], Vec
     Quaternion q3;
 
     virtualmodel_t *pVModel         = pStudioHdr->GetVirtualModel();
-    const virtualgroup_t *pSeqGroup = NULL;
+    const virtualgroup_t *pSeqGroup = nullptr;
     if (pVModel)
     {
         pSeqGroup = pVModel->pSeqGroup(sequence);
@@ -1524,7 +1524,7 @@ void ScaleBones(const CStudioHdr *pStudioHdr, Quaternion q1[MAXSTUDIOBONES], Vec
     mstudioseqdesc_t &seqdesc = ((CStudioHdr *) pStudioHdr)->pSeqdesc(sequence);
 
     virtualmodel_t *pVModel         = pStudioHdr->GetVirtualModel();
-    const virtualgroup_t *pSeqGroup = NULL;
+    const virtualgroup_t *pSeqGroup = nullptr;
     if (pVModel)
     {
         pSeqGroup = pVModel->pSeqGroup(sequence);
@@ -2841,7 +2841,7 @@ bool Studio_IKAnimationError(const CStudioHdr *pStudioHdr, mstudioikrule_t *pRul
         return false;
 
     mstudioikerror_t *pError = pRule->pError(iFrame);
-    if (pError != NULL)
+    if (pError != nullptr)
     {
         if (fraq < 0.001)
         {
@@ -2857,7 +2857,7 @@ bool Studio_IKAnimationError(const CStudioHdr *pStudioHdr, mstudioikrule_t *pRul
     }
 
     mstudiocompressedikerror_t *pCompressed = pRule->pCompressedError();
-    if (pCompressed != NULL)
+    if (pCompressed != nullptr)
     {
         CalcDecompressedAnimation(pCompressed, iFrame - pRule->iStart, fraq, pos, q);
         return true;
@@ -2881,7 +2881,7 @@ bool Studio_IKSequenceError(const CStudioHdr *pStudioHdr, mstudioseqdesc_t &seqd
     memset(&ikRule, 0, sizeof(ikRule));
     ikRule.start = ikRule.peak = ikRule.tail = ikRule.end = 0;
 
-    mstudioikrule_t *prevRule = NULL;
+    mstudioikrule_t *prevRule = nullptr;
 
     // find overall influence
     for (i = 0; i < 4; i++)
@@ -2895,11 +2895,11 @@ bool Studio_IKSequenceError(const CStudioHdr *pStudioHdr, mstudioseqdesc_t &seqd
             }
 
             mstudioikrule_t *pRule = panim[i]->pIKRule(iRule);
-            if (pRule == NULL)
+            if (pRule == nullptr)
                 return false;
 
             float dt = 0.0;
-            if (prevRule != NULL)
+            if (prevRule != nullptr)
             {
                 if (pRule->start - prevRule->start > 0.5)
                 {
@@ -2940,7 +2940,7 @@ bool Studio_IKSequenceError(const CStudioHdr *pStudioHdr, mstudioseqdesc_t &seqd
     if (ikRule.flWeight <= 0.001f)
     {
         // go ahead and allow IK_GROUND rules a virtual looping section
-        if (panim[0]->pIKRule(iRule) == NULL)
+        if (panim[0]->pIKRule(iRule) == nullptr)
             return false;
         if ((panim[0]->flags & STUDIO_LOOPING) && panim[0]->pIKRule(iRule)->type == IK_GROUND && ikRule.end - ikRule.start > 0.75)
         {
@@ -2969,7 +2969,7 @@ bool Studio_IKSequenceError(const CStudioHdr *pStudioHdr, mstudioseqdesc_t &seqd
             float w;
 
             mstudioikrule_t *pRule = panim[i]->pIKRule(iRule);
-            if (pRule == NULL)
+            if (pRule == nullptr)
                 return false;
 
             ikRule.chain = pRule->chain; // FIXME: this is anim local
@@ -3049,7 +3049,7 @@ CIKContext::CIKContext()
 {
     m_target.EnsureCapacity(12); // FIXME: this sucks, shouldn't it be grown?
     m_iFramecounter = -1;
-    m_pStudioHdr    = NULL;
+    m_pStudioHdr    = nullptr;
     m_flTime        = -1.0f;
     m_target.SetSize(0);
 }
@@ -3554,7 +3554,7 @@ void CIKContext::UpdateTargets(Vector pos[], Quaternion q[], matrix3x4_t boneToW
                     }
                     else
                     {
-                        pTarget->offset.pAttachmentName = NULL;
+                        pTarget->offset.pAttachmentName = nullptr;
                     }
 
                     if (pRule->flRuleWeight == 1.0f || pTarget->est.flWeight == 0.0f)
@@ -3791,13 +3791,13 @@ void CIKContext::AutoIKRelease(void)
                 if (pTarget->chain >= 0 && pTarget->chain < m_pStudioHdr->numikchains())
                 {
                     mstudioikchain_t *pchain = m_pStudioHdr->pIKChain(pTarget->chain);
-                    if (pchain != NULL)
+                    if (pchain != nullptr)
                     {
                         int bone = pchain->pLink(2)->bone;
                         if (bone >= 0 && bone < m_pStudioHdr->numbones())
                         {
                             mstudiobone_t *pBone = m_pStudioHdr->pBone(bone);
-                            if (pBone != NULL)
+                            if (pBone != nullptr)
                             {
                                 if (!(m_pStudioHdr->boneFlags(bone) & m_boneMask))
                                 {
@@ -3815,7 +3815,7 @@ void CIKContext::AutoIKRelease(void)
                             }
                             else
                             {
-                                DevWarning(1, "AutoIKRelease (%s) got a NULL pBone %d\n", m_pStudioHdr->pszName(), bone);
+                                DevWarning(1, "AutoIKRelease (%s) got a nullptr pBone %d\n", m_pStudioHdr->pszName(), bone);
                             }
                         }
                         else
@@ -3825,7 +3825,7 @@ void CIKContext::AutoIKRelease(void)
                     }
                     else
                     {
-                        DevWarning(1, "AutoIKRelease (%s) got a NULL pchain %d\n", m_pStudioHdr->pszName(), pTarget->chain);
+                        DevWarning(1, "AutoIKRelease (%s) got a nullptr pchain %d\n", m_pStudioHdr->pszName(), pTarget->chain);
                     }
                 }
                 else
@@ -4235,7 +4235,7 @@ void CBoneSetup::CalcAutoplaySequences(Vector pos[], Quaternion q[], float flRea
         pIKContext->AddAutoplayLocks(pos, q);
     }
 
-    unsigned short *pList = NULL;
+    unsigned short *pList = nullptr;
     int count             = m_pStudioHdr->GetAutoplayList(&pList);
     for (i = 0; i < count; i++)
     {
@@ -4682,7 +4682,7 @@ bool CalcProceduralBone(const CStudioHdr *pStudioHdr, int iBone, CBoneAccessor &
             return true;
 
         case STUDIO_PROC_AIMATBONE:
-            DoAimAtBone(pbones, iBone, bonetoworld, NULL);
+            DoAimAtBone(pbones, iBone, bonetoworld, nullptr);
             return true;
 
         case STUDIO_PROC_AIMATATTACH:
@@ -4709,7 +4709,7 @@ static mstudiobonecontroller_t *FindController(const CStudioHdr *pStudioHdr, int
             return pStudioHdr->pBonecontroller(i);
     }
 
-    return NULL;
+    return nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -5653,7 +5653,7 @@ const char *Studio_GetKeyValueText(const CStudioHdr *pStudioHdr, int iSequence)
             return ((CStudioHdr *) pStudioHdr)->pSeqdesc(iSequence).KeyValueText();
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 bool Studio_PrefetchSequence(const CStudioHdr *pStudioHdr, int iSequence)
