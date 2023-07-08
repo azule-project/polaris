@@ -19,7 +19,6 @@
 #include "CNavFile.h"
 #include "teamroundtimer.hpp"
 #include "Aimbot.hpp"
-#include "MiscAimbot.hpp"
 #include "navparser.hpp"
 #if ENABLE_VISUALS
 #include "drawing.hpp"
@@ -716,59 +715,17 @@ static void followCrumbs()
     }*/
 
     // Look at path
-    if (look && !hacks::aimbot::IsAiming())
+    if (*look && !hacks::aimbot::IsAiming())
     {
-        float best_dist                = FLT_MAX;
-        std::optional<Vector> look_vec = std::nullopt;
-        for (int i = 1; i <= g_IEngine->GetMaxClients(); i++)
-        {
-            CachedEntity *ent = ENTITY(i);
-            if (i == g_pLocalPlayer->entity_idx || CE_INVALID(ent) || !ent->m_bEnemy())
-                continue;
-        }
-        if (look_vec)
-        {
-            Vector aim_ang = GetAimAtAngles(g_pLocalPlayer->v_Eye, *look_vec);
-            hacks::misc_aimbot::DoSlowAim(aim_ang, 20);
-            current_user_cmd->viewangles = aim_ang;
-        }
-        else
-        {
-            static Vector next{ crumbs[0].vec.x, crumbs[0].vec.y, g_pLocalPlayer->v_Eye.z };
-            static bool looked_at_point = true;
-            static Timer choose_new_point;
+        Vector next{ crumbs[0].vec.x, crumbs[0].vec.y, g_pLocalPlayer->v_Eye.z };
+        next = GetAimAtAngles(g_pLocalPlayer->v_Eye, next);
 
-            static int wait_time = 20;
-            static int aim_speed = 15;
-
-            if (looked_at_point && choose_new_point.test_and_set(wait_time))
-            {
-                next = { crumbs[0].vec.x, crumbs[0].vec.y, g_pLocalPlayer->v_Eye.z };
-                next = GetAimAtAngles(g_pLocalPlayer->v_Eye, next);
-                next.x += UniformRandomInt(0, 0);
-                next.y += UniformRandomInt(0, 0);
-                fClampAngle(next);
-                looked_at_point = false;
-            }
-
-            // Pick a new point, we're looking at our current one closely enough
-            if ((current_user_cmd->viewangles - next).IsZero(5.0f))
-            {
-                if (!looked_at_point)
-                    choose_new_point.update();
-                looked_at_point = true;
-                wait_time       = 20 + UniformRandomInt(0, 2);
-                aim_speed       = 11 + UniformRandomInt(0, 2); // it was smooth at 13
-            }
-
-            Vector next_slow = next;
-            // ACTUAL NAV SMOOTHEN
-            hacks::misc_aimbot::DoSlowAim(next_slow, aim_speed);
-            current_user_cmd->viewangles = next_slow;
-        }
+        current_user_cmd->viewangles = next;
     }
-    WalkTo(crumbs[0].vec);
+
+    WalkTo(current_vec);
 }
+
 
 static Timer vischeck_timer{};
 void vischeckPath()
