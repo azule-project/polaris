@@ -1,7 +1,8 @@
 /*
  * hack.cpp
  *
-
+ *  Created on: Oct 3, 2016
+ *      Author: nullifiedcat
  */
 
 #define __USE_GNU
@@ -64,16 +65,17 @@ const std::string &hack::GetType()
     if (version_set)
         return version;
     version = "";
-#if not ENABLE_IPC
+    
+#if !ENABLE_IPC
     version += " NOIPC";
 #endif
-#if not ENABLE_GUI
+#if !ENABLE_GUI
     version += " NOGUI";
 #else
     version += " GUI";
 #endif
 
-#if not ENABLE_VISUALS
+#if !ENABLE_VISUALS
     version += " NOVISUALS";
 #endif
 
