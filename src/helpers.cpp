@@ -1861,8 +1861,24 @@ std::unique_ptr<char[]> strfmt(const char *fmt, ...)
     return buf;
 }
 
-const char *powerups[] = { "Strength", "Resistance", "Vampire", "Reflect", "Haste", "Regeneration", "Precision", "Agility", "Knockout", "King", "Plague", "Supernova", "Revenge" };
+void ChangeName(std::string name)
+{
+    auto custom_name = settings::Manager::instance().lookup("name.custom");
+    if (custom_name != nullptr)
+        custom_name->fromString(name);
 
+    ReplaceSpecials(name);
+    NET_SetConVar setname("name", name.c_str());
+    auto *ch = (INetChannel *) g_IEngine->GetNetChannelInfo();
+    if (ch)
+    {
+        setname.SetNetChannel(ch);
+        setname.SetReliable(false);
+        ch->SendNetMsg(setname, false);
+    }
+}
+
+const char *powerups[] = { "Strength", "Resistance", "Vampire", "Reflect", "Haste", "Regeneration", "Precision", "Agility", "Knockout", "King", "Plague", "Supernova", "Revenge" };
 const std::string classes[] = { "Scout", "Sniper", "Soldier", "Demoman", "Medic", "Heavy", "Pyro", "Spy", "Engineer" };
 
 // This and below taken from leaks
