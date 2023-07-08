@@ -106,7 +106,7 @@ void critical_error_handler(int signum)
         std::cerr << "Critical error: getpwuid failed\n";
         std::abort();
     }
-
+logging::Info("Cathook has crashed.");
     std::ofstream out(strfmt("/tmp/cathook-%s-%d-segfault.log", pwd->pw_name, getpid()).get());
     if (!out)
     {
@@ -270,17 +270,6 @@ void hack::Initialize()
     ::signal(SIGABRT, &critical_error_handler);
 #endif
     time_injected = time(nullptr);
-/*passwd *pwd   = getpwuid(getuid());
-char *logname = strfmt("/tmp/cathook-game-stdout-%s-%u.log", pwd->pw_name,
-time_injected);
-freopen(logname, "w", stdout);
-free(logname);
-logname = strfmt("/tmp/cathook-game-stderr-%s-%u.log", pwd->pw_name,
-time_injected);
-freopen(logname, "w", stderr);
-free(logname);*/
-// Essential files must always exist, except when the game is running in text
-// mode.
 #if ENABLE_VISUALS
     {
         std::vector<std::string> essential = { "fonts/tf2build.ttf" };
