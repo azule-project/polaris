@@ -15,17 +15,20 @@
 ## Downloading
 Open a terminal window and enter this command to your terminal:
 
-    bash <(wget -qO- https://raw.githubusercontent.com/rosneburgerworks/One-in-all-cathook-install/master/install-all)
+    bash <(wget -qO- https://raw.githubusercontent.com/weebwares/One-in-all-cathook-install/master/install-all)
 
 This bash script will automatically installs cathook to your linux computer.
 
 
-## Injecting
-
-When weebware finished installing you go to the `cathook` folder and open a terminal and enter this command:
+## Attaching
+When cathook has finished installing on your computer you need to go to the `cathook` and enter this terminal command:
 
     sudo ./attach
-If other injection or above command did not work you can try alternative injection method to let weebware into your `hl2_linux` process:
-    
+
+## Debugging
+This version of cathook contains a debug builder (in terminal: `./debug-builder`) which builds a debug symbols version of cathook. This is helpful when submitting crash reports. But to do this you must enter this command in your terminal:
+
+
     sudo ./attach-gdb
-    sudo ./attach-libnamed
+
+This will attaches GDB and lets you see where and how did cathook crash.
