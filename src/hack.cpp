@@ -116,7 +116,7 @@ void critical_error_handler(int signum)
     ::signal(signum, SIG_DFL);
     passwd *pwd = getpwuid(getuid());
     logging::Info("Cathook has crashed.");
-    std::ofstream out(format_cstr("/tmp/cathook-%s-%d-segfault.log", pwd->pw_name, getpid()).get());
+    std::ofstream out(strfmt("/tmp/cathook-%s-%d-segfault.log", pwd->pw_name, getpid()).get());
 
     Dl_info info;
     if (!dladdr(reinterpret_cast<void *>(hack::ExecuteCommand), &info))
@@ -164,9 +164,6 @@ void hack::Hook()
     }
     hooks::clientmode.Set((void *) clientMode);
     hooks::clientmode.HookMethod(HOOK_ARGS(CreateMove));
-#if ENABLE_VISUALS
-    hooks::clientmode.HookMethod(HOOK_ARGS(OverrideView));
-#endif
     hooks::clientmode.HookMethod(HOOK_ARGS(LevelInit));
     hooks::clientmode.HookMethod(HOOK_ARGS(LevelShutdown));
     hooks::clientmode.Apply();
@@ -211,7 +208,6 @@ void hack::Hook()
 
 #if ENABLE_VISUALS || ENABLE_TEXTMODE
     hooks::modelrender.Set(g_IVModelRender);
-    hooks::modelrender.HookMethod(HOOK_ARGS(DrawModelExecute));
     hooks::modelrender.Apply();
 #endif
     hooks::enginevgui.Set(g_IEngineVGui);
