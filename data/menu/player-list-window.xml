@@ -1,18 +1,14 @@
-<Window width="content" height="content" x="200" y="200" name="Playerlist">
+<Window width="content" height="content" x="200" y="200" name="Player list">
     <Table id="special-player-list">
-        <Column width="25"/>
-        <Column width="70"/>
+        <Column width="70" />
         <Column width="140"/>
-        <Column width="55"/>
+        <Column width="50"/>
         <Column width="60"/>
         <Column width="70"/>
         <Column width="60"/>
         <TRow id="header">
             <TData height="15" width="fill">
-                <Text height="fill" width="fill" padding="0 0 0 4">UID</Text>
-            </TData>
-            <TData height="15" width="fill">
-                <Text height="fill" width="fill" padding="0 0 0 4">SteamID</Text>
+                <Text height="fill" width="fill" padding="0 0 0 4">Steam ID</Text>
             </TData>
             <TData height="15" width="fill">
                 <Text height="fill" width="fill" padding="0 0 0 4">Username</Text>
@@ -25,9 +21,6 @@
             </TData>
             <TData height="15" width="fill">
                 <Text height="fill" width="fill" padding="0 0 0 4">State</Text>
-            </TData>
-            <TData height="15" width="fill">
-                <Text height="fill" width="fill" padding="0 0 0 4">Kick</Text>
             </TData>
         </TRow>
     </Table>
