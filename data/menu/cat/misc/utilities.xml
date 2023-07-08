@@ -62,8 +62,8 @@
             <AutoVariable width="fill" target="votelogger.autovote.yes" label="Autovote yes" tooltip="Automatically votes yes depending on target status."/>
             <AutoVariable width="fill" target="votelogger.autovote.no" label="Autovote no" tooltip="Automatically votes no depending on target status."/>
             <AutoVariable width="fill" target="votelogger.autovote.wait" label="Autovote wait" tooltip="Wait before we will automatically vote."/>
-            <AutoVariable width="fill" target="votelogger.autovote.wait.min" label="Wait min (ms)" tooltip="Wait minimum in miliseconds."/>
-            <AutoVariable width="fill" target="votelogger.autovote.wait.max" label="Wait max (ms)" tooltip="Wait maximum in miliseconds."/>
+            <AutoVariable width="fill" target="votelogger.autovote.wait.min" label="Wait min (ms)" tooltip="Wait minimum in milliseconds."/>
+            <AutoVariable width="fill" target="votelogger.autovote.wait.max" label="Wait max (ms)" tooltip="Wait maximum in milliseconds."/>
             <AutoVariable width="fill" target="votelogger.autovote.no.rage" label="Kick RAGE status" tooltip="Votes no on RAGE status player call votes."/>
             <AutoVariable width="fill" target="votelogger.leave-after-local-vote" label="Abandon on local vote" tooltip="Abandon matchmaking server after calling vote."/>
             <AutoVariable width="fill" target="votelogger.requeue-on-kick" label="Requeue on kick" tooltip="Requeue if getting kicked. Note: Queue will stop if vote fails."/>
