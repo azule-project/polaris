@@ -1,11 +1,11 @@
-<Tab name="UI" padding="4 4 4 4">
+<Tab name="User Interface" padding="4 4 4 4">
     <Box padding="12 6 6 6" width="content" height="content" name="UI">
         <List width="180">
             <AutoVariable width="fill" target="visual.open-gui-button" label="GUI button" tooltip="Button to toggle this menu"/>
-            <AutoVariable width="fill" target="visual.clean-screenshots" label="Clean screenshots"/>
-            <AutoVariable width="fill" target="visual.disable" label="Disable visuals"/>
-            <AutoVariable width="fill" target="visual.medal-flip" label="Guaranteed medal flip"/>
-            <LabeledObject width="fill" label="Software cursor mode" tooltip="WARNING: Advanced users only">
+            <AutoVariable width="fill" target="visual.clean-screenshots" label="Clean screenshots."/>
+            <AutoVariable width="fill" target="visual.disable" label="Disable every visuals."/>
+            <AutoVariable width="fill" target="visual.medal-flip" label="Guarantees a medal flip."/>
+            <LabeledObject width="fill" label="Software cursor mode" tooltip="(Advanced users only): Where should the cursor be.">
                 <Select target="visual.software-cursor-mode">
                     <Option name="Keep" value="0"/>
                     <Option name="Always" value="1"/>
@@ -13,8 +13,23 @@
                     <Option name="Menu on" value="3"/>
                 </Select>
             </LabeledObject>
+            <AutoVariable width="fill" target="visual.snowflakes" label="Enable snowflakes"/>
+            <AutoVariable width="fill" target="visual.snowflakes.fall-speed.min" label="Minimum fall speed"/>
+            <AutoVariable width="fill" target="visual.snowflakes.fall-speed.max" label="Maximum fall speed"/>
+            <AutoVariable width="fill" target="visual.snowflakes.sideways-speed.min" label="Minimum sidemove speed"/>
+            <AutoVariable width="fill" target="visual.snowflakes.sideways-speed.max" label="Maximum sidemove speed"/>
             <AutoVariable width="fill" target="visual.font_size.esp" label="Main font size"/>
             <AutoVariable width="fill" target="visual.font_size.center_size" label="Center string font size"/>
+            <Box padding="12 6 6 6" width="content" height="content" name="Team Colors" x="185">
+        <List width="150">
+            <AutoVariable width="fill" target="colors.team-red" label="RED"/>
+            <AutoVariable width="fill" target="colors.team-blu" label="BLU"/>
+            <AutoVariable width="fill" target="colors.team-red.background" label="RED background"/>
+            <AutoVariable width="fill" target="colors.team-blu.background" label="BLU background"/>
+            <AutoVariable width="fill" target="colors.team-red.vaccinator" label="RED vaccinator"/>
+            <AutoVariable width="fill" target="colors.team-blu.vaccinator" label="BLU vaccinator"/>
+            <AutoVariable width="fill" target="colors.team-red.ubercharge" label="RED ubercharge"/>
+            <AutoVariable width="fill" target="colors.team-blu.ubercharge" label="BLU ubercharge"/>
         </List>
     </Box>
 </Tab>
