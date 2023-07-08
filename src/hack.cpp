@@ -1,42 +1,38 @@
 /*
  * hack.cpp
  *
- *  Created on: Oct 3, 2016
- *      Author: nullifiedcat
+
  */
 
-#include <csignal>
-#include <cstdio>
-#include <cstring>
+#define __USE_GNU
+#include <execinfo.h>
+#include <signal.h>
+#include <stdio.h>
+#include <string.h>
 #include <dlfcn.h>
 #include <boost/stacktrace.hpp>
+#include <cxxabi.h>
 #include <visual/SDLHooks.hpp>
-
-#ifdef __RDSEED__ // Used for InitRandom()
-#include "x86gprintrin.h"
-#else             /* __RDSEED__ */
-#include <random>
-#include <fstream>
-#include <chrono>
-#include <sys/types.h>
-#include <unistd.h>
-#endif /* __RDSEED__ */
-
 #include "hack.hpp"
 #include "common.hpp"
+#include "MiscTemporary.hpp"
 #if ENABLE_GUI
 #include "menu/GuiInterface.hpp"
 #endif
+#include <link.h>
 #include <pwd.h>
-#include <iostream>
 
+#include <hacks/hacklist.hpp>
 #include "teamroundtimer.hpp"
 #if EXTERNAL_DRAWING
 #include "xoverlay.h"
 #endif
+#define STRINGIFY(x) #x
+#define TO_STRING(x) STRINGIFY(x)
 
 #include "copypasted/CDumper.hpp"
 #include "version.h"
+#include <cxxabi.h>
 
 /*
  *  Credits to josh33901 aka F1ssi0N for butifel F1Public and Darkstorm 2015
@@ -51,34 +47,38 @@ bool hack::initialized   = false;
 const std::string &hack::GetVersion()
 {
     static std::string version("Unknown Version");
-    if (version != "Unknown Version")
+    static bool version_set = false;
+    if (version_set)
         return version;
 #if defined(GIT_COMMIT_HASH) && defined(GIT_COMMITTER_DATE)
     version = "Version: #" GIT_COMMIT_HASH " " GIT_COMMITTER_DATE;
 #endif
+    version_set = true;
     return version;
 }
 
 const std::string &hack::GetType()
 {
     static std::string version("Unknown Type");
-    if (version != "Unknown Type")
+    static bool version_set = false;
+    if (version_set)
         return version;
     version = "";
-#if !ENABLE_IPC
+#if not ENABLE_IPC
     version += " NOIPC";
 #endif
-#if !ENABLE_GUI
+#if not ENABLE_GUI
     version += " NOGUI";
 #else
     version += " GUI";
 #endif
 
-#if !ENABLE_VISUALS
+#if not ENABLE_VISUALS
     version += " NOVISUALS";
 #endif
 
-    version = version.substr(1);
+    version     = version.substr(1);
+    version_set = true;
     return version;
 }
 
@@ -96,94 +96,90 @@ void hack::ExecuteCommand(const std::string &command)
 }
 
 #if ENABLE_LOGGING
+
+std::string getFileName(std::string filePath)
+{
+    // Get last dot position
+    std::size_t dotPos = filePath.rfind('.');
+    std::size_t sepPos = filePath.rfind('/');
+
+    if (sepPos != std::string::npos)
+    {
+        return filePath.substr(sepPos + 1, filePath.size() - (dotPos != std::string::npos ? 1 : dotPos));
+    }
+    return filePath;
+}
+
 void critical_error_handler(int signum)
 {
-    std::signal(signum, SIG_DFL);
-
+    namespace st = boost::stacktrace;
+    ::signal(signum, SIG_DFL);
     passwd *pwd = getpwuid(getuid());
-    if (!pwd)
-    {
-        std::cerr << "Critical error: getpwuid failed\n";
-        std::abort();
-    }
-logging::Info("Cathook has crashed.");
-    std::ofstream out(strfmt("/tmp/cathook-%s-%d-segfault.log", pwd->pw_name, getpid()).get());
-    if (!out)
-    {
-        std::cerr << "Critical error: cannot open log file\n";
-        std::abort();
-    }
+    logging::Info("Cathook has crashed.");
+    std::ofstream out(format_cstr("/tmp/cathook-%s-%d-segfault.log", pwd->pw_name, getpid()).get());
 
     Dl_info info;
     if (!dladdr(reinterpret_cast<void *>(hack::ExecuteCommand), &info))
-    {
-        std::cerr << "Critical error: dladdr failed\n";
-        std::abort();
-    }
+        return;
 
-    for (auto i : boost::stacktrace::stacktrace())
+    for (auto i : st::stacktrace())
     {
         Dl_info info2;
         if (dladdr(i.address(), &info2))
         {
-            uintptr_t offset = reinterpret_cast<uintptr_t>(i.address()) - reinterpret_cast<uintptr_t>(info2.dli_fbase);
-            out << (!strcmp(info2.dli_fname, info.dli_fname) ? "cathook" : info2.dli_fname) << '\t' << reinterpret_cast<void *>(offset) << std::endl;
+            unsigned int offset = (unsigned int) i.address() - (unsigned int) info2.dli_fbase;
+            out << (!strcmp(info2.dli_fname, info.dli_fname) ? "cathook" : info2.dli_fname) << '\t' << (void *) offset << std::endl;
         }
     }
 
     out.close();
-    std::abort();
+    ::raise(SIGABRT);
 }
 #endif
 
 static void InitRandom()
 {
-#ifdef __RDSEED__
-    unsigned int seed;
-    do
+    int rand_seed;
+    FILE *rnd = fopen("/dev/urandom", "rb");
+    if (!rnd || fread(&rand_seed, sizeof(rand_seed), 1, rnd) < 1)
     {
-    } while (!_rdseed32_step(&seed));
-    srand(seed);
-#else
-    std::random_device rd;
-    unsigned int rand_seed = rd();
-
-    if (rd.entropy() == 0) // Check if the random device is not truly random
-    {
-        logging::Info("Warning! Failed to read from random_device. Randomness is going to be weak.");
-
-        auto now         = std::chrono::high_resolution_clock::now().time_since_epoch();
-        auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
-        rand_seed        = static_cast<unsigned int>(nanoseconds ^ nanoseconds & getpid());
+        logging::Info("Warning!!! Failed read from /dev/urandom (%s). Randomness is going to be weak", strerror(errno));
+        timespec t;
+        clock_gettime(CLOCK_MONOTONIC, &t);
+        rand_seed = t.tv_nsec ^ (t.tv_sec & getpid());
     }
-
-    // Seed random number generator
     srand(rand_seed);
-#endif
+    if (rnd)
+        fclose(rnd);
 }
 
 void hack::Hook()
 {
-    uintptr_t *clientMode;
+    uintptr_t *clientMode = 0;
     // Bad way to get clientmode.
     // FIXME [MP]?
-    while (!(clientMode = **(uintptr_t ***) ((uintptr_t) (*(void ***) g_IBaseClient)[10] + 1)))
+    while (!(clientMode = **(uintptr_t ***) ((uintptr_t) ((*(void ***) g_IBaseClient)[10]) + 1)))
+    {
         usleep(10000);
+    }
     hooks::clientmode.Set((void *) clientMode);
     hooks::clientmode.HookMethod(HOOK_ARGS(CreateMove));
+#if ENABLE_VISUALS
+    hooks::clientmode.HookMethod(HOOK_ARGS(OverrideView));
+#endif
     hooks::clientmode.HookMethod(HOOK_ARGS(LevelInit));
     hooks::clientmode.HookMethod(HOOK_ARGS(LevelShutdown));
     hooks::clientmode.Apply();
 
-    hooks::clientmode4.Set((void *) clientMode, 4);
+    hooks::clientmode4.Set((void *) (clientMode), 4);
     hooks::clientmode4.HookMethod(HOOK_ARGS(FireGameEvent));
     hooks::clientmode4.Apply();
 
     hooks::client.Set(g_IBaseClient);
     hooks::client.HookMethod(HOOK_ARGS(DispatchUserMessage));
 #if ENABLE_VISUALS
-    hooks::client.HookMethod(HOOK_ARGS(FrameStageNotify));
     hooks::client.HookMethod(HOOK_ARGS(IN_KeyEvent));
+    hooks::client.HookMethod(HOOK_ARGS(FrameStageNotify));
 #endif
     hooks::client.Apply();
 
@@ -197,7 +193,8 @@ void hack::Hook()
     hooks::vstd.HookMethod(HOOK_ARGS(RandomInt));
     hooks::vstd.Apply();
 #if ENABLE_VISUALS
-    CHudElement *chat_hud;
+
+    auto chat_hud = g_CHUD->FindElement("CHudChat");
     while (!(chat_hud = g_CHUD->FindElement("CHudChat")))
         usleep(1000);
     hooks::chathud.Set(chat_hud);
@@ -214,6 +211,7 @@ void hack::Hook()
 
 #if ENABLE_VISUALS || ENABLE_TEXTMODE
     hooks::modelrender.Set(g_IVModelRender);
+    hooks::modelrender.HookMethod(HOOK_ARGS(DrawModelExecute));
     hooks::modelrender.Apply();
 #endif
     hooks::enginevgui.Set(g_IEngineVGui);
@@ -223,10 +221,6 @@ void hack::Hook()
     hooks::engine.Set(g_IEngine);
     hooks::engine.HookMethod(HOOK_ARGS(ServerCmdKeyValues));
     hooks::engine.Apply();
-
-    hooks::cmdclientunrestricted.Set(g_IEngine);
-    hooks::cmdclientunrestricted.HookMethod(HOOK_ARGS(ClientCmd_Unrestricted));
-    hooks::cmdclientunrestricted.Apply();
 
     hooks::demoplayer.Set(demoplayer);
     hooks::demoplayer.HookMethod(HOOK_ARGS(IsPlayingTimeDemo));
@@ -270,38 +264,24 @@ void hack::Initialize()
     ::signal(SIGABRT, &critical_error_handler);
 #endif
     time_injected = time(nullptr);
-#if ENABLE_VISUALS
-    {
-        std::vector<std::string> essential = { "fonts/tf2build.ttf" };
-        for (const auto &s : essential)
-        {
-            std::ifstream exists(paths::getDataPath("/" + s), std::ios::in);
-            if (!exists)
-            {
-                Error(("Missing essential file: " + s + "/%s\nYou MUST run install-data script to finish installation").c_str(), s.c_str());
-            }
-        }
-    }
-#endif
+
     logging::Info("Initializing...");
     InitRandom();
     sharedobj::LoadLauncher();
-
 #if !ENABLE_TEXTMODE
-    // remove epic source lock (needed for non-preload tf2)
+    // remove epic source lock
     std::remove("/tmp/source_engine_2925226592.lock");
 #endif
-
     sharedobj::LoadEarlyObjects();
 
+// Fix locale issues caused by steam update
 #if ENABLE_TEXTMODE
-    // Fix locale issues caused by steam update
-    static BytePatch patch(CSignature::GetEngineSignature, "74 ? 89 5C 24 ? 8D 9D ? ? ? ? 89 74 24", 0, { 0x71 });
+    static BytePatch patch(gSignatures.GetEngineSignature, "74 ? 89 5C 24 ? 8D 9D ? ? ? ? 89 74 24", 0, { 0x71 });
     patch.Patch();
 
-    // Remove intro video which also causes some crashes
-    static BytePatch patch_intro_video(CSignature::GetEngineSignature, "55 89 E5 57 56 53 83 EC 5C 8B 5D ? 8B 55", 0x9, { 0x83, 0xc4, 0x5c, 0x5b, 0x5e, 0x5f, 0x5d, 0xc3 });
+    static BytePatch patch_intro_video(gSignatures.GetEngineSignature, "55 89 E5 57 56 53 83 EC 5C 8B 5D ? 8B 55", 0x9, { 0x83, 0xc4, 0x5c, 0x5b, 0x5e, 0x5f, 0x5d, 0xc3 });
     patch_intro_video.Patch();
+
 #endif
 
     CreateEarlyInterfaces();
@@ -318,10 +298,8 @@ void hack::Initialize()
     logging::Info("Early Initializer stack done");
     sharedobj::LoadAllSharedObjects();
     CreateInterfaces();
-#if ENABLE_LOGGING
     CDumper dumper;
     dumper.SaveDump();
-#endif
     InitClassTable();
 
     BeginConVars();
@@ -333,7 +311,8 @@ void hack::Initialize()
 #if ENABLE_GUI
 // FIXME put gui here
 #endif
-#endif
+
+#endif /* TEXTMODE */
 
     gNetvars.init();
     InitNetVars();
@@ -355,17 +334,16 @@ void hack::Initialize()
     }
     logging::Info("Initializer stack done");
 #if ENABLE_TEXTMODE
-    hack::command_stack().emplace("exec cat_autoexec_textmode");
-    hack::command_stack().emplace("exec betrayals");
+    hack::command_stack().push("exec cat_autoexec_textmode");
 #else
-    hack::command_stack().emplace("exec cat_autoexec");
+    hack::command_stack().push("exec cat_autoexec");
 #endif
     auto extra_exec = std::getenv("CH_EXEC");
     if (extra_exec)
-        hack::command_stack().emplace(extra_exec);
+        hack::command_stack().push(extra_exec);
 
     hack::initialized = true;
-    for (int i = 0; i < 12; ++i)
+    for (int i = 0; i < 12; i++)
     {
         re::ITFMatchGroupDescription *desc = re::GetMatchGroupDescription(i);
         if (!desc || desc->m_iID > 9) // ID's over 9 are invalid
@@ -411,11 +389,8 @@ void hack::Shutdown()
     {
         logging::Info("Running shutdown handlers");
         EC::run(EC::Shutdown);
-#if ENABLE_VISUALS
-        g_pScreenSpaceEffects->DisableScreenSpaceEffect("_cathook_glow");
 #if EXTERNAL_DRAWING
         xoverlay_destroy();
-#endif
 #endif
     }
     logging::Info("Releasing VMT hooks..");
