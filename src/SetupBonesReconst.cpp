@@ -108,7 +108,7 @@ bool SetupBones(IClientEntity *ent, matrix3x4_t *pBoneToWorld, int boneMask)
         (*m_pIk)->UpdateTargets(pos, q, pBoneToWorld, boneComputed);
 
         typedef void (*CalculateIKLocks_t)(IClientEntity *, float);
-        static uintptr_t CalculateIKLocks_sig      = gSignatures.GetClientSignature("55 89 E5 57 56 53 81 EC EC 04 00 00");
+        static uintptr_t CalculateIKLocks_sig      = CSignature::GetClientSignature("55 89 E5 57 56 53 81 EC EC 04 00 00");
         static CalculateIKLocks_t CalculateIKLocks = (CalculateIKLocks_t) CalculateIKLocks_sig;
 
         CalculateIKLocks(ent, g_GlobalVars->curtime);
