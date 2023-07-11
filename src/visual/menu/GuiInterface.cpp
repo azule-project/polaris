@@ -10,6 +10,7 @@
 #include <menu/menu/special/PlayerListController.hpp>
 #include <hack.hpp>
 #include <common.hpp>
+#include <filesystem>
 
 settings::Button open_gui_button{ "visual.open-gui-button", "Insert" };
 
@@ -167,13 +168,13 @@ static PlayerListEventListener listener{};
 
 static void load()
 {
-    *menu = zerokernel::Menu::instance->loadFromFile(paths::getDataPath("/menu"), "menu.xml");//This sometimes fail if /menu path doesn't exist crashing the game without clear reason.
-    if(!std::ifstream(paths::getDataPath("/menu"), "menu.xml")) //if menu doesnt exist, but why this should be happening?
+    if(!std::filesystem::exists("/opt/cathook/data/menu/menu.xml") //?
     {
-      Error("You are missing the menu, cathook refuses to load.\nYou MUST run install-data script to finish installation.")
+      Error("You are missing the menu, cathook refuses to load.\nYou MUST run install-data script to finish installation.");
       logging::Info("Menu doesn't exist, cathook will exit.");
     }
-
+  
+    zerokernel::Menu::instance->loadFromFile(paths::getDataPath("/menu"), "menu.xml");
     zerokernel::Container *sv = dynamic_cast<zerokernel::Container *>(zerokernel::Menu::instance->wm->getElementById("special-variables"));
     if (sv)
     {
