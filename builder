@@ -20,7 +20,7 @@ if [ ! -e MicroPather ]; then
 git clone https://github.com/nullworks/MicroPather
 fi
 if [ ! -e simple-ipc ]; then
-git clone https://github.com/nullworks/simple-ipc
+git clone https://github.com/rosne-gamingyt/simple-ipc
 fi
 popd
 
