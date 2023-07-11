@@ -168,10 +168,10 @@ static PlayerListEventListener listener{};
 
 static void load()
 {
-    if(!std::filesystem::exists("/opt/cathook/data/menu/menu.xml") //?
+    if(!std::filesystem::exists("/opt/cathook/data/menu/menu.xml")) //?
     {
       Error("You are missing the menu, cathook refuses to load.\nYou MUST run install-data script to finish installation.");
-      logging::Info("Menu doesn't exist, cathook will exit.");
+      printf("Menu doesn't exist, cathook will exit.");
     }
   
     zerokernel::Menu::instance->loadFromFile(paths::getDataPath("/menu"), "menu.xml");
