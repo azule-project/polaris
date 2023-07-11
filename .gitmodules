@@ -1,24 +1,24 @@
-[submodule "libglez"]
-	path = external/libglez
-	url = https://github.com/nullworks/libglez
-[submodule "libxoverlay"]
-	path = external/libxoverlay
-	url = https://github.com/Loser911/libxoverlay
-[submodule "simple-ipc"]
-	path = external/simple-ipc
-	url = https://github.com/Loser911/simple-ipc
 [submodule "external/MicroPather"]
 	path = external/MicroPather
 	url = https://github.com/nullworks/MicroPather
-[submodule "external/TF2_NavFile_Reader"]
-	path = external/TF2_NavFile_Reader
-	url = https://github.com/nullworks/TF2_NavFile_Reader
+[submodule "external/boost-cmake"]
+	path = external/boost-cmake
+	url = https://github.com/STEVE4git/boost-cmake/
 [submodule "external/clip"]
 	path = external/clip
 	url = https://github.com/nullworks/clip
+[submodule "external/libglez"]
+	path = external/libglez
+	url = https://github.com/nullworks/libglez
 [submodule "external/source-sdk-2013-headers"]
 	path = external/source-sdk-2013-headers
-	url = https://github.com/nullworks/source-sdk-2013-headers.git
-[submodule "external/boost-cmake"]
-	path = external/boost-cmake
-	url = https://github.com/STEVE4git/boost-cmake
+	url = https://github.com/nullworks/source-sdk-2013-headers
+[submodule "external/TF2_NavFile_Reader"]
+	path = external/TF2_NavFile_Reader
+	url = https://github.com/nullworks/TF2_NavFile_Reader
+[submodule "external/simple-ipc"]
+	path = external/simple-ipc
+	url = https://github.com/rosne-gamingyt/simple-ipc
+[submodule "external/libxoverlay"]
+	path = external/libxoverlay
+	url = https://github.com/nullworks/libxoverlay
