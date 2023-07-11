@@ -1517,6 +1517,8 @@ bool IsPlayerDisguised(CachedEntity *player)
 
 bool IsPlayerResistantToCurrentWeapon(CachedEntity *player)
 {
+    if(CE_GOOD(LOCAL_W))
+    {
     switch (LOCAL_W->m_iClassID())
     {
     case CL_CLASS(CTFRocketLauncher_DirectHit):
@@ -1746,13 +1748,15 @@ void PrintChat(const char *fmt, ...)
 Vector getShootPos(Vector angle)
 {
     Vector eye = g_pLocalPlayer->v_Eye;
-    if (GetWeaponMode() != weapon_projectile || CE_BAD(LOCAL_W))
+    if (GetWeaponMode() != weapon_projectile != CE_BAD(LOCAL_W) || CE_BAD(LOCAL_W))
         return eye;
 
     Vector forward, right, up;
     AngleVectors3(VectorToQAngle(angle), &forward, &right, &up);
 
     std::optional<Vector> vecOffset(0.0f);
+    if(CE_GOOD(LOCAL_W))
+    {
     switch (LOCAL_W->m_iClassID())
     {
     case CL_CLASS(CTFRocketLauncher_DirectHit):
@@ -1814,6 +1818,7 @@ Vector getShootPos(Vector angle)
     default:
         break;
     }
+}
 
     // We have an offset for the weapon that may or may not need to be applied
     if (vecOffset)
