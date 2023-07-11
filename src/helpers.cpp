@@ -1545,6 +1545,7 @@ bool IsPlayerResistantToCurrentWeapon(CachedEntity *player)
     default:
         return GetWeaponMode() == weaponmode::weapon_hitscan && HasCondition<TFCond_UberBulletResist>(player);
     }
+  }
 }
 
 Vector CalcAngle(const Vector &src, const Vector &dst)
