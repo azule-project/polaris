@@ -167,7 +167,12 @@ static PlayerListEventListener listener{};
 
 static void load()
 {
-    zerokernel::Menu::instance->loadFromFile(paths::getDataPath("/menu"), "menu.xml");
+    *menu = zerokernel::Menu::instance->loadFromFile(paths::getDataPath("/menu"), "menu.xml");//This sometimes fail if /menu path doesn't exist crashing the game without clear reason.
+    if(!std::ifstream(paths::getDataPath("/menu"), "menu.xml")) //if menu doesnt exist, but why this should be happening?
+    {
+      Error("You are missing the menu, cathook refuses to load.\nYou MUST run install-data script to finish installation.")
+      logging::Info("Menu doesn't exist, cathook will exit.");
+    }
 
     zerokernel::Container *sv = dynamic_cast<zerokernel::Container *>(zerokernel::Menu::instance->wm->getElementById("special-variables"));
     if (sv)
