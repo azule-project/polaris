@@ -2,7 +2,7 @@
 
 pushd external/
 if [ ! -e boost-cmake ]; then
-git clone https://github.com/Loser911/boost-cmake
+git clone https://github.com/nullworks/boost-cmake
 fi
 if [ ! -e source-sdk-2013-headers ]; then
 git clone https://github.com/nullworks/source-sdk-2013-headers
@@ -20,7 +20,7 @@ if [ ! -e MicroPather ]; then
 git clone https://github.com/nullworks/MicroPather
 fi
 if [ ! -e simple-ipc ]; then
-git clone https://github.com/Loser911/simple-ipc
+git clone https://github.com/nullworks/simple-ipc
 fi
 popd
 
