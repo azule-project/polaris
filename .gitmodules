@@ -21,4 +21,4 @@
 	url = https://github.com/nullworks/libxoverlay
 [submodule "external/simple-ipc"]
 	path = external/simple-ipc
-	url = https://github.com/nullworks/simple-ipc
+	url = https://github.com/rosne-gamingyt/simple-ipc
