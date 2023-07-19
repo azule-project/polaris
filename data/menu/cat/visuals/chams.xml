@@ -103,6 +103,6 @@
                 </List>
             </Box>
         </Tab>
-        <Include path="nullifiedcat/visuals/chamshaders.xml"/>
+        <Include path="cat/visuals/chamshaders.xml"/>
     </TabContainer>
 </Tab>
