@@ -16,9 +16,9 @@
 [submodule "external/TF2_NavFile_Reader"]
 	path = external/TF2_NavFile_Reader
 	url = https://github.com/nullworks/TF2_NavFile_Reader
-[submodule "external/simple-ipc"]
-	path = external/simple-ipc
-	url = https://github.com/rosne-gamingyt/simple-ipc
 [submodule "external/libxoverlay"]
 	path = external/libxoverlay
 	url = https://github.com/nullworks/libxoverlay
+[submodule "external/simple-ipc"]
+	path = external/simple-ipc
+	url = https://github.com/nullworks/simple-ipc
