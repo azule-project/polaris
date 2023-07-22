@@ -1,16 +1,15 @@
 <ElementGroup>
-    <Window x="100" y="300" name="Weebware Menu" width="content" height="content">
+    <Window x="100" y="300" name="Menu" width="content" height="content">
         <TabContainer width="600" height="450">
             <Include path="cat/aimbot.xml"/>
             <Include path="cat/triggerbot.xml"/>
-            <Include path="cat/autoheal.xml"/>
             <Include path="cat/exploits.xml"/>
-            <Include path="cat/visuals.xml"/>
             <Include path="cat/antiaim.xml"/>
-            <Include path="cat/movement.xml"/>
+             <Include path="cat/visuals.xml"/>
             <Include path="cat/misc.xml"/>
-            <Include path="cat/chat.xml"/>
-            <Include path="cat/hackinfo.xml"/>
+            <Include path="cat/movement.xml"/>
+             <Include path="cat/hackinfo.xml"/>
+              <Include path="cat/bot.xml"/>
         </TabContainer>
     </Window>
 </ElementGroup>

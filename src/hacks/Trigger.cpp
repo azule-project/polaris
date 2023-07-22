@@ -1,6 +1,6 @@
 
 /*
- * HTrigger.cpp
+ * Trigger.cpp
  *
  *  Created on: Oct 5, 2016
  *      Author: nullifiedcat
@@ -24,8 +24,10 @@ static settings::Float delay{ "trigger.delay", "0" };
 static settings::Button trigger_key{ "trigger.key.button", "<null>" };
 static settings::Int trigger_key_mode{ "trigger.key.mode", "1" };
 // FIXME move these into targeting
+static settings::Boolean ignore_cloak{ "trigger.target.ignore-cloaked-spies", "true" };
 static settings::Boolean ignore_vaccinator{ "trigger.target.ignore-vaccinator", "true" };
 static settings::Boolean buildings_sentry{ "trigger.target.buildings-sentry", "true" };
+static settings::Boolean buildings_other{ "trigger.target.buildings-other", "true" };
 static settings::Boolean stickybot{ "trigger.target.stickybombs", "false" };
 static settings::Boolean teammates{ "trigger.target.teammates", "false" };
 static settings::Float max_range{ "trigger.target.max-range", "4096" };
@@ -238,6 +240,9 @@ bool IsTargetStateGood(CachedEntity *entity, std::optional<backtrack::BacktrackD
         // Don't target invulnerable players, ex: uber, bonk
         if (IsPlayerInvulnerable(entity))
             return false;
+        // If settings allow, don't target cloaked players
+        if (ignore_cloak && IsPlayerInvisible(entity))
+            return false;
         // If settings allow, don't target vaccinated players
         if (ignore_vaccinator && IsPlayerResistantToCurrentWeapon(entity))
             return false;
@@ -282,14 +287,14 @@ bool IsTargetStateGood(CachedEntity *entity, std::optional<backtrack::BacktrackD
     else if (entity->m_Type() == ENTITY_BUILDING)
     {
         // Check if building aimbot is enabled
-        if (!( buildings_sentry))
+        if (!(buildings_other || buildings_sentry))
             return false;
         // Check if enemy building
         if (!entity->m_bEnemy())
             return false;
 
         // If needed, Check if building type is allowed
-        if  (buildings_sentry)
+        if (!(buildings_other && buildings_sentry))
         {
             // Check if target is a sentrygun
             if (entity->m_iClassID() == CL_CLASS(CObjectSentrygun))
@@ -300,6 +305,10 @@ bool IsTargetStateGood(CachedEntity *entity, std::optional<backtrack::BacktrackD
             }
             else
             {
+                // If target is not a sentry, check if other buildings are
+                // allowed
+                if (!buildings_other)
+                    return false;
             }
         }
 
@@ -542,3 +551,4 @@ static InitRoutine EC(
         EC::Register(EC::CreateMoveWarp, CreateMove, "triggerbot_w", EC::average);
     });
 } // namespace hacks::triggerbot
+

@@ -1,5 +1,5 @@
-<Tab name="Data centers" padding="4 4 4 4">
-    <Box height="content" width="content" padding="12 6 6 6" name="Data centers">
+<Tab name="Data Centers" padding="4 4 4 4">
+    <Box height="content" width="content" padding="12 6 6 6" name="Data Centers">
         <List width="250">
             <AutoVariable width="fill" target="dc.enable" label="Enable datacenter selector" tooltip="Enables datacenter selector."/>
             <AutoVariable width="fill" target="dc.restrict" label="Find only selected regions" tooltip="Forces game coordinator to only search for regions selected in the region list."/>

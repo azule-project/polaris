@@ -17,8 +17,10 @@ static settings::Boolean enable{ "esp.enable", "false" };
 static settings::Int max_dist{ "esp.range", "4096" };
 
 static settings::Int box_esp{ "esp.box.mode", "2" };
-static settings::Int box_corner_size_height{ "esp.box.corner-size.height", "11" };
-static settings::Int box_corner_size_width{ "esp.box.corner-size.width", "11" };
+static settings::Int box_corner_size_height{ "esp.box.corner-size.height", "10" };
+static settings::Int box_corner_size_width{ "esp.box.corner-size.width", "10" };
+static settings::Boolean box_3d_player{ "esp.box.player-3d", "false" };
+static settings::Boolean box_3d_building{ "esp.box.building-3d", "false" };
 
 static settings::Boolean draw_bones{ "esp.bones", "false" };
 static settings::Float bones_thickness{ "esp.bones.thickness", "0.5" };
@@ -52,7 +54,11 @@ static settings::Boolean item_esp{ "esp.item.enable", "true" };
 static settings::Boolean item_ammo_packs{ "esp.item.ammo", "false" };
 static settings::Boolean item_health_packs{ "esp.item.health", "true" };
 // static settings::Boolean item_powerups{ "esp.item.powerup", "true" };
+static settings::Boolean item_money{ "esp.item.money", "true" };
+static settings::Boolean item_spellbooks{ "esp.item.spellbook", "true" };
+static settings::Boolean item_explosive{ "esp.item.explosive", "true" };
 static settings::Boolean item_crumpkin{ "esp.item.crumpkin", "true" };
+static settings::Boolean item_gargoyle{ "esp.item.gargoyle", "true" };
 static settings::Boolean item_objectives{ "esp.item.objectives", "false" };
 
 static settings::Boolean proj_esp{ "esp.projectile.enable", "false" };
@@ -639,8 +645,9 @@ void _FASTCALL BoxEsp(EntityType &type, bool &transparent, rgba_t &fg, CachedEnt
             fg.g *= 0.75f;
             fg.b *= 0.75f;
         }
-        if (!box_esp)
+        if (!box_3d_player && box_esp)
             DrawBox(ent, fg);
+        else if (box_3d_player)
             Draw3DBox(ent, fg);
         break;
     case ENTITY_BUILDING:
@@ -696,8 +703,9 @@ void _FASTCALL BoxEsp(EntityType &type, bool &transparent, rgba_t &fg, CachedEnt
             if (visible)
                 draw::Triangle(screen[0].x, screen[0].y, screen[1].x, screen[1].y, screen[2].x, screen[2].y, fg);
         }
-        if (!box_esp)
+        if (!box_3d_building && box_esp)
             DrawBox(ent, fg);
+        else if (box_3d_building)
             Draw3DBox(ent, fg);
         break;
     }
@@ -840,7 +848,7 @@ void ProcessEntityPT()
         bool transparent = vischeck && ent_data.transparent;
 
         // Box esp
-        if (box_esp)
+        if (box_esp || box_3d_player || box_3d_building)
             BoxEsp(type, transparent, fg, ent);
 
         if (draw_bones)
@@ -983,6 +991,15 @@ void _FASTCALL ProcessEntity(CachedEntity *ent)
             player_info_s info{};
             if (!GetPlayerInfo(ent->m_IDX, &info))
                 return;
+
+            // Legit mode handling
+            if (legit && ent->m_bEnemy() && playerlist::IsDefault(info.friendsID))
+            {
+                if (IsPlayerInvisible(ent))
+                    return; // Invis check
+                if (vischeck && !ent->IsVisible())
+                    return;
+            }
 
             // Powerup handling
             if (powerup_esp)
@@ -1185,6 +1202,22 @@ void _FASTCALL ProcessEntity(CachedEntity *ent)
             if (model)
             {
                 const auto szName = g_IModelInfo->GetModelName(model);
+                // Gargoyle esp
+                if (item_gargoyle && classid == CL_CLASS(CHalloweenGiftPickup))
+                {
+                    if (HandleToIDX(CE_INT(ent, netvar.m_hTargetPlayer)) == g_pLocalPlayer->entity_idx)
+                        AddEntityString(ent, gargoyle_str, colors::FromRGBA8(199, 21, 133, 255));
+                    return;
+                }
+                // Explosive/Environmental hazard esp
+                else if (item_explosive && (classid == CL_CLASS(CTFPumpkinBomb) || Hash::IsHazard(szName)))
+                {
+                    if (classid == CL_CLASS(CTFPumpkinBomb))
+                        AddEntityString(ent, pumpkinbomb_str, colors::FromRGBA8(255, 162, 0, 255));
+                    else
+                        AddEntityString(ent, explosive_str, colors::FromRGBA8(255, 162, 0, 255));
+                    return;
+                }
                 if (item_objectives && (classid == CL_CLASS(CCaptureFlag) || (Hash::IsFlag(szName) || Hash::IsBombCart(szName) || Hash::IsBombCartRed(szName))))
                 {
                     rgba_t color = ent->m_iTeam() == TEAM_BLU ? colors::blu : (ent->m_iTeam() == TEAM_RED ? colors::red : colors::white);
@@ -1213,11 +1246,77 @@ void _FASTCALL ProcessEntity(CachedEntity *ent)
                 // Powerup esp
                 // else if (item_powerups && (Hash::IsPowerup(szName)))
                 // AddEntityString(ent, powerups[itemtype - ITEM_POWERUP_FIRST]);
+                // Halloween spell esp
+                else if (item_spellbooks && (Hash::IsSpellbook(szName) || Hash::IsSpellbookRare(szName)))
+                {
+                    if (Hash::IsSpellbookRare(szName))
+                        AddEntityString(ent, rare_spell_str, colors::FromRGBA8(139, 31, 221, 255));
+                    else
+                        AddEntityString(ent, spell_str, colors::green);
+                }
                 // Crumpkin esp https://wiki.teamfortress.com/wiki/Halloween_pumpkin
                 else if (item_crumpkin && Hash::IsCrumpkin(szName))
                     AddEntityString(ent, crumpkin_str, colors::FromRGBA8(253, 203, 88, 255));
             }
+            // MVM Money esp
+            if (item_money && classid == CL_CLASS(CCurrencyPack) && !CE_BYTE(ent, netvar.bDistributed))
+                AddEntityString(ent, mvm_money_str);
         }
+    }
+}
+
+// Draw 3D box around player/building
+void _FASTCALL Draw3DBox(CachedEntity *ent, const rgba_t &clr)
+{
+    if (CE_INVALID(ent) || !ent->m_bAlivePlayer())
+        return;
+
+    Vector origin = RAW_ENT(ent)->GetCollideable()->GetCollisionOrigin();
+    Vector mins   = RAW_ENT(ent)->GetCollideable()->OBBMins();
+    Vector maxs   = RAW_ENT(ent)->GetCollideable()->OBBMaxs();
+    // Dormant
+    if (RAW_ENT(ent)->IsDormant())
+        origin = *ent->m_vecDormantOrigin();
+
+    // Create an array for storing box points
+    Vector corners[8]; // World vectors
+    Vector points[8];  // Screen vectors
+
+    // Create points for the box based on max and mins
+    float x    = maxs.x - mins.x;
+    float y    = maxs.y - mins.y;
+    float z    = maxs.z - mins.z;
+    corners[0] = mins;
+    corners[1] = mins + Vector(x, 0, 0);
+    corners[2] = mins + Vector(x, y, 0);
+    corners[3] = mins + Vector(0, y, 0);
+    corners[4] = mins + Vector(0, 0, z);
+    corners[5] = mins + Vector(x, 0, z);
+    corners[6] = mins + Vector(x, y, z);
+    corners[7] = mins + Vector(0, y, z);
+
+    // Rotate the box and check if any point of the box isn't on the screen
+    for (unsigned i = 0; i < 8; ++i)
+    {
+        float yaw    = NET_VECTOR(RAW_ENT(ent), netvar.m_angEyeAngles).y;
+        float s      = sinf(DEG2RAD(yaw));
+        float c      = cosf(DEG2RAD(yaw));
+        float xx     = corners[i].x;
+        float yy     = corners[i].y;
+        corners[i].x = (xx * c) - (yy * s);
+        corners[i].y = (xx * s) + (yy * c);
+        corners[i] += origin;
+
+        if (!draw::WorldToScreen(corners[i], points[i]))
+            return;
+    }
+    rgba_t draw_clr = clr;
+    // Draw the actual box
+    for (unsigned i = 1; i <= 4; ++i)
+    {
+        draw::Line((points[i - 1].x), (points[i - 1].y), (points[i % 4].x) - (points[i - 1].x), (points[i % 4].y) - (points[i - 1].y), draw_clr, 0.5f);
+        draw::Line((points[i - 1].x), (points[i - 1].y), (points[i + 3].x) - (points[i - 1].x), (points[i + 3].y) - (points[i - 1].y), draw_clr, 0.5f);
+        draw::Line((points[i + 3].x), (points[i + 3].y), (points[i % 4 + 4].x) - (points[i + 3].x), (points[i % 4 + 4].y) - (points[i + 3].y), draw_clr, 0.5f);
     }
 }
 
@@ -1424,3 +1523,4 @@ static InitRoutine init(
     });
 
 } // namespace hacks::esp
+

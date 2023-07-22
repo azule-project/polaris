@@ -393,7 +393,7 @@ public:
                     Vector area = i.m_center;
                     area.z += PLAYER_JUMP_HEIGHT;
                     // Out of range
-                    if (building_origin.DistToSqr(area) > SQR(1100 + HALF_PLAYER_WIDTH))
+                    if (building_origin.DistToSqr(area) > Sqr(1100.0f + HALF_PLAYER_WIDTH))
                         continue;
                     // Check if sentry can see us
                     if (!IsVectorVisibleNavigation(building_origin, area))
@@ -412,7 +412,7 @@ public:
                     Vector area = i.m_center;
                     area.z += PLAYER_JUMP_HEIGHT;
                     // Out of range
-                    if (sticky_origin.DistToSqr(area) > (130 + HALF_PLAYER_WIDTH) * (130 + HALF_PLAYER_WIDTH))
+                    if (sticky_origin.DistToSqr(area) > Sqr(130.0f + HALF_PLAYER_WIDTH))
                         continue;
                     // Check if Sticky can see the reason
                     if (!IsVectorVisibleNavigation(sticky_origin, area))
@@ -470,7 +470,10 @@ bool isReady()
 
     std::string level_name = GetLevelName();
     return *enabled && map && map->state == NavState::Active &&
-           (level_name == "plr_pipeline" || g_pGameRules->m_iRoundState > 3);
+           (level_name == "plr_pipeline" || g_pGameRules->m_iRoundState > 3) &&
+           !(g_pGameRules->m_bInSetup && g_pLocalPlayer->team == TEAM_BLU) &&
+           // FIXME: If we're on a control point map, and blue is the attacking team, then the gates are closed, so we shouldn't path
+           !(g_pGameRules->m_bInWaitingForPlayers && (level_name.starts_with("pl_") || level_name.starts_with("cp_")) && g_pLocalPlayer->team == TEAM_BLU);
 }
 
 bool isPathing()
@@ -697,7 +700,7 @@ static void followCrumbs()
             ticks_since_jump++;
 
             // Update jump timer now since we are back on ground
-            if (crouch && CE_INT(LOCAL_E, netvar.iFlags) & FL_ONGROUND && ticks_since_jump > 3)
+            if (crouch && g_pLocalPlayer->flags & FL_ONGROUND && ticks_since_jump > 3)
             {
                 // Reset
                 crouch = false;
@@ -725,7 +728,6 @@ static void followCrumbs()
 
     WalkTo(current_vec);
 }
-
 
 static Timer vischeck_timer{};
 void vischeckPath()
@@ -840,12 +842,21 @@ static void CreateMove()
     if (!isReady())
         return;
 
-    if (CE_BAD(LOCAL_E) || !LOCAL_E->m_bAlivePlayer())
+    if (CE_BAD(LOCAL_E) || !g_pLocalPlayer->alive)
     {
         cancelPath();
         return;
     }
-    
+
+    // Still in setup or waiting for players. If on fitting team, do not path yet
+    std::string level_name = GetLevelName();
+    if (g_pLocalPlayer->team == TEAM_BLU && (g_pGameRules->m_bInSetup && level_name != "plr_pipeline" || g_pGameRules->m_bInWaitingForPlayers && (level_name.starts_with("pl_") || level_name.starts_with("cp_"))))
+    {
+        if (navparser::NavEngine::isPathing())
+            navparser::NavEngine::cancelPath();
+        return;
+    }
+
     if (*vischeck_runtime)
         vischeckPath();
     checkBlacklist();
@@ -943,7 +954,7 @@ void Draw()
 {
     if (!isReady() || !*draw)
         return;
-    if (*draw_debug_areas && CE_GOOD(LOCAL_E) && LOCAL_E->m_bAlivePlayer())
+    if (*draw_debug_areas && CE_GOOD(LOCAL_E) && g_pLocalPlayer->alive)
     {
         auto area = map->findClosestNavSquare(g_pLocalPlayer->v_Origin);
         auto edge = area->getNearestPoint(g_pLocalPlayer->v_Origin.AsVector2D());
@@ -964,11 +975,13 @@ void Draw()
         Vector start_screen, end_screen;
         if (draw::WorldToScreen(start_pos, start_screen))
         {
+            draw::Rectangle(start_screen.x - 5.0f, start_screen.y - 5.0f, 10.0f, 10.0f, colors::white);
+
             if (i < crumbs.size() - 1)
             {
                 Vector end_pos = crumbs[i + 1].vec;
                 if (draw::WorldToScreen(end_pos, end_screen))
-                    draw::Line(start_screen.x, start_screen.y, end_screen.x - start_screen.x, end_screen.y - start_screen.y, colors::green, 2.0f);
+                    draw::Line(start_screen.x, start_screen.y, end_screen.x - start_screen.x, end_screen.y - start_screen.y, colors::white, 2.0f);
             }
         }
     }
@@ -1049,3 +1062,4 @@ static InitRoutine init(
     });
 
 } // namespace navparser
+

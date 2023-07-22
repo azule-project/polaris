@@ -15,13 +15,20 @@
             <AutoVariable width="fill" target="aimbot.debug.engine-pp" label="Debug engine PP"/>
         </List>
     </Box>
-    <Box height="content" width="content" padding="12 6 6 6" name="Weebware" x="180">
+    <Box height="content" width="content" padding="12 6 6 6" name="Hack" x="180">
         <List width="150">
-            <AutoVariable width="fill" target="hack.enable" label="Enable Weebware" tooltip="Weebware"/>
-            <AutoVariable width="fill" target="hack-info.enable" label="Enable Label" tooltip="Changes how weebware should display itself as."/>
+            <AutoVariable width="fill" target="hack.enable" label="Enable" tooltip="Enable cheat."/>
+            <AutoVariable width="fill" target="hack-info.enable" label="Enable Display" tooltip="Enable displaying information."/>
+            <AutoVariable width="fill" target="hack-info.name" label="Name"/>
+            <LabeledObject width="fill" label="Style">
+                <Select target="hack-info.style">
+                    <Option name="New" value="0"/>
+                    <Option name="Old" value="1"/>
+                </Select>
+            </LabeledObject>
+            <AutoVariable width="fill" target="hack-info.size" label="Size"/>
             <AutoVariable width="fill" target="hack-info.x" label="X position"/>
             <AutoVariable width="fill" target="hack-info.y" label="Y position"/>
-            <AutoVariable width="fill" target="hack-info.size" label="Size"/>
         </List>
     </Box>
 </Tab>

@@ -1,6 +1,7 @@
 <Tab name="Visuals">
     <TabContainer width="fill" height="fill">
         <Include path="cat/visuals/chams.xml"/>
+        <Include path="cat/visuals/chamshaders.xml"/>
         <Include path="cat/visuals/esp.xml"/>
         <Include path="cat/visuals/glow.xml"/>
         <Include path="cat/visuals/colors.xml"/>

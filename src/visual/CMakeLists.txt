@@ -1,5 +1,4 @@
-set(files "${CMAKE_CURRENT_LIST_DIR}/atlas.cpp"
-        "${CMAKE_CURRENT_LIST_DIR}/colors.cpp"
+set(files "${CMAKE_CURRENT_LIST_DIR}/colors.cpp"
         "${CMAKE_CURRENT_LIST_DIR}/drawing.cpp"
         "${CMAKE_CURRENT_LIST_DIR}/drawmgr.cpp"
         "${CMAKE_CURRENT_LIST_DIR}/EffectGlow.cpp"

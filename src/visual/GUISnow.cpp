@@ -96,7 +96,7 @@ public:
     // Draw the Snowflake
     void Draw() const
     {
-        draw::RectangleTextured(this->x, this->y, *snowflake_size, *snowflake_size, colors::white, textures::atlas().texture, 257, 0, 16, 16, 0.0f);
+        draw::Rectangle4Snow(this->x, this->y, *snowflake_size, *snowflake_size, colors::white, 257, 0, 16, 16, 0.0f);
     }
     // Is the Snowflake off-screen?
     bool IsOffScreen() const

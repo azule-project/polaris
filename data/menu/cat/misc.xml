@@ -1,6 +1,5 @@
 <Tab name="Misc">
     <TabContainer width="fill" height="fill">
-        <Include path="cat/misc/autoitem.xml"/>
         <Include path="cat/misc/collective.xml"/>
         <Include path="cat/misc/utilities.xml"/>
         <Include path="cat/misc/datacenters.xml"/>

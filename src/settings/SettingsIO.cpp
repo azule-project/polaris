@@ -28,23 +28,24 @@ bool settings::SettingsWriter::saveTo(std::string path, bool autosave)
 
     if (!stream || stream.bad() || !stream.is_open() || stream.fail())
     {
-        logging::File("cat_save: FATAL! FAILED to create stream!");
+        logging::File("[CAT] Fatal Error: Failed to create stream!");
         if (!autosave)
-            g_ICvar->ConsoleColorPrintf(MENU_COLOR, "ROSNEHOOK: cat_save: Can't create config file!\n");
+            g_ICvar->ConsoleColorPrintf(MENU_COLOR, "[CAT] Can't create config file!\nCheck your /opt/cathook/data/configs/ directory and permission!");
+            logging::File("[CAT] Fatal Error: Failed to write configuration file due to permission error.");
         return false;
     }
 
     using pair_type = std::pair<std::string, settings::IVariable *>;
     std::vector<pair_type> all_registered{};
-    logging::File("cat_save: Getting variable references...");
+    logging::File("[CAT] Getting variable references...");
     for (auto &v : settings::Manager::instance().registered)
     {
         if (!only_changed || v.second.isChanged())
             all_registered.emplace_back(std::make_pair(v.first, &v.second.variable));
     }
-    logging::File("cat_save: Sorting...");
+    logging::File("[CAT] Sorting configuration...");
     std::sort(all_registered.begin(), all_registered.end(), [](const pair_type &a, const pair_type &b) -> bool { return a.first.compare(b.first) < 0; });
-    logging::File("cat_save: Writing...");
+    logging::File("[CAT] Writing configuration...");
     for (auto &v : all_registered)
         if (!v.first.empty())
         {
@@ -54,14 +55,14 @@ bool settings::SettingsWriter::saveTo(std::string path, bool autosave)
     if (!stream || stream.bad() || stream.fail())
     {
         if (!autosave)
-            g_ICvar->ConsoleColorPrintf(MENU_COLOR, "ROSNEHOOK: cat_save: Failed to save config!\n");
-        logging::File("cat_save: FATAL! Stream bad!");
+            g_ICvar->ConsoleColorPrintf(MENU_COLOR, "[CAT] Failed to save config.\n");
+        logging::File("[CAT] Fatal Error: Stream bad!");
     }
     else if (!autosave)
-        g_ICvar->ConsoleColorPrintf(MENU_COLOR, "ROSNEHOOK: cat_save: Successfully saved config!\n");
+        g_ICvar->ConsoleColorPrintf(MENU_COLOR, "[CAT] Successfully saved configuration.\n");
     stream.close();
     if (stream.fail())
-        logging::File("cat_save: FATAL! Stream bad (2)!");
+        logging::File("[CAT] Fatal Error: Stream bad!");
     return true;
 }
 
@@ -73,7 +74,7 @@ void settings::SettingsWriter::write(std::string name, IVariable *variable)
         writeEscaped(variable->toString());
     else
     {
-        logging::Info("cat_save: FATAL! Variable invalid! %s", name.c_str());
+        logging::Info("[CAT] Fatal Error: Variable was invalid! %s", name.c_str());
     }
     stream << std::endl;
 }
@@ -107,8 +108,8 @@ bool settings::SettingsReader::loadFrom(std::string path)
 
     if (stream.fail())
     {
-        logging::Info("cat_load: Can't access file!");
-        g_ICvar->ConsoleColorPrintf(MENU_COLOR, "ROSNEHOOK: cat_load: File doesn't exist / can't open file!\n");
+        logging::Info("[CAT] Unable to load %d", path);
+        g_ICvar->ConsoleColorPrintf(MENU_COLOR, "[CAT] Configuration was unable to load, or does not exist.");
         return false;
     }
 
@@ -127,13 +128,13 @@ bool settings::SettingsReader::loadFrom(std::string path)
     }
     if (stream.fail() && !stream.eof())
     {
-        logging::Info("cat_load: FATAL: Read failed!");
-        g_ICvar->ConsoleColorPrintf(MENU_COLOR, "ROSNEHOOK: cat_load: Failed to read config!\n");
+        logging::Info("[CAT] Configuration reading has failed.");
+        g_ICvar->ConsoleColorPrintf(MENU_COLOR, "[CAT] Failed to load configuration.\n");
         return false;
     }
 
-    logging::Info("cat_load: Read Success!");
-    g_ICvar->ConsoleColorPrintf(MENU_COLOR, "ROSNEHOOK: cat_load: Successfully loaded config!\n");
+    logging::Info("[CAT] Configuration reading has completed.");
+    g_ICvar->ConsoleColorPrintf(MENU_COLOR, "[CAT] Successfully loaded configuration.\n");
     finishString(true);
 
     return true;
@@ -144,8 +145,8 @@ bool settings::SettingsReader::loadFromString(std::string stream)
     settings::SettingsReader loader{ settings::Manager::instance() };
     if (stream == "")
     {
-        logging::Info("cat_load: Empty String!");
-        g_ICvar->ConsoleColorPrintf(MENU_COLOR, "ROSNEHOOK: cat_load: Empty String!\n");
+        logging::Info("[CAT] Empty string on stream.");
+        g_ICvar->ConsoleColorPrintf(MENU_COLOR, "[CAT] Settings were empty.\n");
         return false;
     }
 
@@ -159,8 +160,8 @@ bool settings::SettingsReader::loadFromString(std::string stream)
         loader.pushChar(c);
     }
 
-    logging::Info("cat_load: Read Success!");
-    g_ICvar->ConsoleColorPrintf(MENU_COLOR, "ROSNEHOOK: cat_load: Successfully loaded config!\n");
+    logging::Info("[CAT] Configuration reading has completed.");
+    g_ICvar->ConsoleColorPrintf(MENU_COLOR, "[CAT] Successfully loaded configuration.\n");
     loader.finishString(true);
 
     return true;
@@ -270,13 +271,14 @@ void settings::SettingsReader::finishString(bool complete)
 
 void settings::SettingsReader::onReadKeyValue(std::string key, std::string value)
 {
-    printf("Read: '%s' = '%s'\n", key.c_str(), value.c_str());
+    printf("[CAT] Reading Value: '%s' = '%s'\n", key.c_str(), value.c_str());
     auto v = manager.lookup(key);
     if (v == nullptr)
     {
-        printf("Could not find variable %s\n", key.c_str());
+        printf("[CAT] Variable not found: %s\n", key.c_str());
+        g_ICvar->ConsoleColorPrintf(MENU_COLOR, "[CAT] Warning! Variable for %s was not found.\n"), key.c_str();
         return;
     }
     v->fromString(value);
-    printf("Set:  '%s' = '%s'\n", key.c_str(), v->toString().c_str());
+    printf("[CAT] Setting Value:  '%s' = '%s'\n", key.c_str(), v->toString().c_str());
 }

@@ -4,153 +4,510 @@
 
 #include "common.hpp"
 #include "settings/Bool.hpp"
-#include "settings/Int.hpp"
-#include "settings/Key.hpp"
 #include "PlayerTools.hpp"
 #include "MiscAimbot.hpp"
 #include "DetourHook.hpp"
+#include "Backtrack.hpp"
 
 namespace hacks::misc_aimbot
 {
+static settings::Boolean sandwichaim_enabled{ "sandwichaim.enable", "false" };
+static settings::Button sandwichaim_aimkey{ "sandwichaim.aimkey", "<null>" };
+static settings::Int sandwichaim_aimkey_mode{ "sandwichaim.aimkey-mode", "0" };
+
+constexpr float sandwich_speed = 350.0f;
 constexpr float grav           = 0.25f;
 constexpr float initial_vel    = 200.0f;
 int prevent                    = -1;
 static Timer previous_entity_delay{};
 
-// TODO: Refactor this jank
-std::pair<CachedEntity *, Vector> FindBestEnt(bool teammate, bool Predict, bool zcheck,  float range)
+std::pair<CachedEntity *, Vector> FindBestEnt(bool teammate, bool Predict, bool zcheck, bool demoknight_mode, float range)
 {
 
     CachedEntity *bestent                             = nullptr;
     float bestscr                                     = FLT_MAX;
+    std::optional<backtrack::BacktrackData> best_data = std::nullopt;
     Vector predicted{};
     // Too long since we focused it
-    if (previous_entity_delay.check(150))
+    if (previous_entity_delay.check(100))
         prevent = -1;
 
-    for (int i = 0; i < 1; ++i)
+    bool shouldBacktrack = backtrack::backtrackEnabled() && !backtrack::hasData();
+
+    auto calculateEntity = [&](CachedEntity *ent) -> std::optional<std::tuple<float, Vector, std::optional<backtrack::BacktrackData>>>
+    {
+        if (CE_BAD(ent) || !ent->m_bAlivePlayer() || (teammate && ent->m_iTeam() != g_pLocalPlayer->team) || ent == LOCAL_E)
+            return std::nullopt;
+        if (!teammate && ent->m_iTeam() == g_pLocalPlayer->team)
+            return std::nullopt;
+        if (!ent->hitboxes.GetHitbox(1))
+            return std::nullopt;
+        if (!teammate && !player_tools::shouldTarget(ent))
+            return std::nullopt;
+
+        Vector target{};
+        if (Predict)
+            target = ProjectilePrediction(ent, 1, sandwich_speed, grav, PlayerGravityMod(ent), initial_vel).second;
+        else
+            target = ent->hitboxes.GetHitbox(1)->center;
+
+        if (!shouldBacktrack && !IsEntityVectorVisible(ent, target))
+            return std::nullopt;
+
+        if (zcheck && (ent->m_vecOrigin().z - g_pLocalPlayer->v_Origin.z) > 200.0f)
+            return std::nullopt;
+
+        float scr = ent->m_flDistance();
+
+        std::optional<backtrack::BacktrackData> data = std::nullopt;
+
+        if (shouldBacktrack && demoknight_mode)
+        {
+            auto good_ticks = backtrack::getGoodTicks(ent);
+            if (good_ticks)
+            {
+                float tick_score = FLT_MAX;
+                for (auto &tick : *good_ticks)
+                {
+                    float dist = tick.m_vecOrigin.DistTo(ent->m_vecOrigin());
+                    if (dist < tick_score)
+                    {
+                        backtrack::MoveToTick(tick);
+                        if (IsEntityVectorVisible(ent, ent->hitboxes.GetHitbox(1)->center))
+                        {
+                            data       = tick;
+                            tick_score = dist;
+                        }
+                        backtrack::RestoreEntity(ent->m_IDX);
+                    }
+                }
+                // No entity
+                if (!data)
+                    return std::nullopt;
+                else
+                {
+                    target = data->m_vecOrigin;
+                    scr    = data->m_vecOrigin.DistTo(g_pLocalPlayer->v_Origin);
+                }
+            }
+            else
+                return std::nullopt;
+        }
+
+        if (demoknight_mode)
+        {
+            if (scr >= range)
+                return std::nullopt;
+            scr = GetFov(g_pLocalPlayer->v_OrigViewangles, g_pLocalPlayer->v_Eye, ent->m_vecOrigin());
+            // Don't turn too harshly
+            if (scr >= 90.0f)
+                return std::nullopt;
+        }
+
+        if (g_pPlayerResource->GetClass(ent) == tf_medic)
+            scr *= 0.5f;
+
+        return { { scr, target, data } };
+    };
+
+    for (const auto &ent : entity_cache::player_cache)
     {
         if (prevent != -1)
         {
-            auto ent = ENTITY(prevent);
-            if (CE_BAD(ent) || !ent->m_bAlivePlayer() || (teammate && ent->m_iTeam() != LOCAL_E->m_iTeam()) || ent == LOCAL_E)
-                continue;
-            if (!teammate && ent->m_iTeam() == LOCAL_E->m_iTeam())
-                continue;
-            if (!ent->hitboxes.GetHitbox(1))
-                continue;
-            if (!teammate && !player_tools::shouldTarget(ent))
-                continue;
-            Vector target{};
-            if (!IsEntityVectorVisible(ent, target))
-                continue;
-            if (zcheck && (ent->m_vecOrigin().z - LOCAL_E->m_vecOrigin().z) > 200.0f)
-                continue;
-            float scr                                    = ent->m_flDistance();
-            if (g_pPlayerResource->GetClass(ent) == tf_medic)
-                scr *= 0.5f;
-            if (scr < bestscr)
+            auto result = calculateEntity(ent);
+            if (result && std::get<0>(*result) < bestscr)
             {
                 bestent   = ent;
-                predicted = target;
-                bestscr   = scr;
+                predicted = std::get<1>(*result);
+                bestscr   = std::get<0>(*result);
                 prevent   = ent->m_IDX;
+                if (shouldBacktrack)
+                    best_data = std::get<2>(*result);
             }
-        }
-        if (bestent && predicted.z)
-        {
             previous_entity_delay.update();
-            return { bestent, predicted };
         }
     }
-    prevent = -1;
-    for (auto const &ent : entity_cache::player_cache)
-    {
-        if (CE_BAD(ent) || !(ent->m_bAlivePlayer()) || (teammate && ent->m_iTeam() != LOCAL_E->m_iTeam()) || ent == LOCAL_E)
-            continue;
-        if (!teammate && ent->m_iTeam() == LOCAL_E->m_iTeam())
-            continue;
-        if (!ent->hitboxes.GetHitbox(1))
-            continue;
-        Vector target{};
-        if (!IsEntityVectorVisible(ent, target))
-            continue;
-        if (zcheck && (ent->m_vecOrigin().z - LOCAL_E->m_vecOrigin().z) > 200.0f)
-            continue;
-        float scr                                    = ent->m_flDistance();
-        if (g_pPlayerResource->GetClass(ent) == tf_medic)
-            scr *= 0.5f;
-        if (scr < bestscr)
-        {
-            bestent   = ent;
-            predicted = target;
-            bestscr   = scr;
-            prevent   = ent->m_IDX;
-        }
-    }
+
+    if (demoknight_mode && best_data)
+        backtrack::MoveToTick(*best_data);
     return { bestent, predicted };
 }
-static float slow_change_dist_y{};
-static float slow_change_dist_p{};
-void DoSlowAim(Vector &input_angle, int speed)
+
+void DoSlowAim(Vector &input_angle, float speed)
 {
     auto viewangles = current_user_cmd->viewangles;
 
-    // Yaw
-    if (viewangles.y != input_angle.y)
+    // Don't bother if we're already on target (unlikely)
+    if (viewangles != input_angle) [[likely]]
     {
-        float flChargeYawCap = re::CTFPlayerShared::CalculateChargeCap(re::CTFPlayerShared::GetPlayerShared(RAW_ENT(LOCAL_E)));
-        flChargeYawCap *= 2.5f;
+        Vector slow_delta = input_angle - viewangles;
 
-        // Check if input angle and user angle are on opposing sides of yaw so
-        // we can correct for that
-        bool slow_opposing = false;
-        if ((input_angle.y < -360 && viewangles.y > 360) || (input_angle.y > 360 && viewangles.y < -360))
-            slow_opposing = true;
+        slow_delta.y = std::fmod(slow_delta.y + 180.0f, 360.0f) - 180.0f;
 
-        // Direction
-        bool slow_dir = false;
-        if (slow_opposing)
+        slow_delta /= speed;
+        input_angle = viewangles + slow_delta;
+
+        // Clamp as we changed angles
+        fClampAngle(input_angle);
+    }
+}
+
+static void SandwichAim()
+{
+    if (!*sandwichaim_enabled)
+        return;
+    if (CE_BAD(LOCAL_E) || !g_pLocalPlayer->alive || CE_BAD(LOCAL_W))
+        return;
+    if (sandwichaim_aimkey)
+    {
+        switch (*sandwichaim_aimkey_mode)
         {
-            if (input_angle.y > 360 && viewangles.y < -360)
-                slow_dir = true;
+        case 1:
+            if (!sandwichaim_aimkey.isKeyDown())
+                return;
+            break;
+        case 2:
+            if (sandwichaim_aimkey.isKeyDown())
+                return;
+            break;
+        default:
+            break;
         }
-        else if (viewangles.y > input_angle.y)
-            slow_dir = true;
-
-        // Speed, check if opposing. We dont get a new distance due to the
-        // opposing sides making the distance spike, so just cheap out and reuse
-        // our last one.
-        if (!slow_opposing)
-            slow_change_dist_y = std::abs(viewangles.y - input_angle.y) / (int) speed;
-
-        // Move in the direction of the input angle
-        if (slow_dir)
-            input_angle.y = viewangles.y - slow_change_dist_y;
-        else
-            input_angle.y = viewangles.y + slow_change_dist_y;
     }
-
-    // Pitch
-    if (viewangles.x != input_angle.x)
+    if (LOCAL_W->m_iClassID() != CL_CLASS(CTFLunchBox))
+        return;
+    Vector Predict;
+    CachedEntity *bestent;
+    std::pair<CachedEntity *, Vector> result{};
+    result  = FindBestEnt(true, true, false, false);
+    bestent = result.first;
+    Predict = result.second;
+    if (bestent)
     {
-        // Get speed
-        slow_change_dist_p = std::abs(viewangles.x - input_angle.x) / speed;
-
-        // Move in the direction of the input angle
-        if (viewangles.x > input_angle.x)
-            input_angle.x = viewangles.x - slow_change_dist_p;
-        else
-            input_angle.x = viewangles.x + slow_change_dist_p;
+        Vector tr = Predict - g_pLocalPlayer->v_Eye;
+        Vector angles;
+        VectorAngles(tr, angles);
+        // Clamping is important
+        fClampAngle(angles);
+        current_user_cmd->viewangles = angles;
+        current_user_cmd->buttons |= IN_ATTACK2;
+        g_pLocalPlayer->bUseSilentAngles = true;
     }
+}
 
-    // Clamp as we changed angles
-    fClampAngle(input_angle);
+static settings::Boolean charge_aim{ "chargeaim.enable", "false" };
+bool ShouldChargeAim()
+{
+    return *charge_aim;
+}
+#if !ENABLE_TEXTMODE
+static settings::Button charge_key{ "chargeaim.key", "<null>" };
+#endif
+
+static void ChargeAimbot()
+{
+    if (!*charge_aim)
+        return;
+#if !ENABLE_TEXTMODE
+    if (charge_key && !charge_key.isKeyDown())
+        return;
+#endif
+    if (CE_BAD(LOCAL_E) || !g_pLocalPlayer->alive || CE_BAD(LOCAL_W))
+        return;
+    if (!HasCondition<TFCond_Charging>(LOCAL_E))
+        return;
+    std::pair<CachedEntity *, Vector> result{};
+    result                = FindBestEnt(false, false, true, true, 1000.0f);
+    CachedEntity *bestent = result.first;
+    if (bestent && result.second.IsValid())
+    {
+        auto angles = GetAimAtAngles(g_pLocalPlayer->v_Eye, result.second);
+        angles.x    = current_user_cmd->viewangles.x;
+        DoSlowAim(angles);
+        current_user_cmd->viewangles = angles;
+    }
+}
+
+static settings::Boolean autosapper_enabled("autosapper.enabled", "false");
+static settings::Boolean autosapper_silent("autosapper.silent", "true");
+
+static void SapperAimbot()
+{
+    if (!autosapper_enabled)
+        return;
+    if (CE_BAD(LOCAL_E) || CE_BAD(LOCAL_W) || !g_pLocalPlayer->holding_sapper)
+        return;
+
+    CachedEntity *target = nullptr;
+    float distance       = FLT_MAX;
+
+    for (const auto &ent : entity_cache::valid_ents)
+    {
+        if (CE_BAD(ent))
+            continue;
+        if (ent->m_Type() != ENTITY_BUILDING)
+            continue;
+        if (!ent->m_bEnemy())
+            continue;
+        if (CE_BYTE(ent, netvar.m_bHasSapper))
+            continue;
+        float new_distance = g_pLocalPlayer->v_Eye.DistTo(GetBuildingPosition(ent));
+        if (distance <= new_distance)
+            continue;
+
+        distance = new_distance;
+        target   = ent;
+    }
+    if (target)
+    {
+        float range    = re::C_TFWeaponBaseMelee::GetSwingRange(RAW_ENT(LOCAL_W));
+        Vector angle   = GetAimAtAngles(g_pLocalPlayer->v_Eye, GetBuildingPosition(target));
+        Vector forward = GetForwardVector(g_pLocalPlayer->v_Eye, angle, range, LOCAL_E);
+        trace_t trace;
+        if (IsEntityVectorVisible(target, forward, false, MASK_SHOT, &trace))
+        {
+            if (trace.DidHit() && (IClientEntity *) trace.m_pEnt == RAW_ENT(target))
+            {
+                current_user_cmd->viewangles = angle;
+                if (autosapper_silent)
+                    g_pLocalPlayer->bUseSilentAngles = true;
+                current_user_cmd->buttons |= IN_ATTACK;
+            }
+        }
+    }
+}
+// auto repair
+static settings::Int autorepair_priority{ "autorepair.priority", "0" };
+static settings::Boolean autorepair_enabled("autorepair.enabled", "false");
+static settings::Boolean autorepair_silent("autorepair.silent", "true");
+static settings::Boolean autorepair_repair_sentry("autorepair.sentry", "false");
+static settings::Boolean autorepair_repair_dispenser("autorepair.dispenser", "false");
+static settings::Boolean autorepair_repair_teleport("autorepair.teleport", "false");
+
+// auto upgrade
+static settings::Boolean autoupgrade_enabled("autoupgrade.enabled", "false");
+static settings::Boolean autoupgrade_sentry("autoupgrade.sentry", "false");
+static settings::Boolean autoupgrade_dispenser("autoupgrade.dispenser", "false");
+static settings::Boolean autoupgrade_teleport("autoupgrade.teleport", "false");
+static settings::Int autoupgrade_sentry_level("autoupgrade.sentry.level", "3");
+static settings::Int autoupgrade_dispenser_level("autoupgrade.dispenser.level", "3");
+static settings::Int autoupgrade_teleport_level("autoupgrade.teleport.level", "2");
+
+bool ShouldHitBuilding(CachedEntity *ent)
+{
+    if (!autoupgrade_enabled && !autorepair_enabled)
+        return false;
+    // Current Metal
+    int cur_ammo = CE_INT(LOCAL_E, netvar.m_iAmmo + 12);
+    // Autorepair is on
+    if (autorepair_enabled)
+    {
+        // Special Sentry logic
+        if (ent->m_iClassID() == CL_CLASS(CObjectSentrygun))
+        {
+            // Current sentry ammo
+            int sentry_ammo = CE_INT(ent, netvar.m_iAmmoShells);
+            // Max Sentry ammo
+            int max_ammo = 0;
+
+            // Set Ammo depending on level
+            switch (CE_INT(ent, netvar.iUpgradeLevel))
+            {
+            case 1:
+                max_ammo = 150;
+                break;
+            case 2:
+            case 3:
+                max_ammo = 200;
+            }
+
+            // Sentry needs ammo
+            if (sentry_ammo < max_ammo)
+                return true;
+        }
+        // Buildings needs to be repaired
+        if (cur_ammo && ent->m_iHealth() != ent->m_iMaxHealth())
+            return true;
+    }
+    // Autoupgrade is on
+    if (autoupgrade_enabled)
+    {
+        // Upgrade lvel
+        int upgrade_level = CE_INT(ent, netvar.iUpgradeLevel);
+
+        // Don't upgrade mini sentries
+        if (CE_BYTE(ent, netvar.m_bMiniBuilding))
+            return false;
+
+        // Rvar to check
+        int level = 0;
+
+        // Pick The right rvar to check depending on building type
+        switch (ent->m_iClassID())
+        {
+
+        case CL_CLASS(CObjectSentrygun):
+            // Enabled check
+            if (!autoupgrade_sentry)
+                return false;
+            level = *autoupgrade_sentry_level;
+            break;
+
+        case CL_CLASS(CObjectDispenser):
+            // Enabled check
+            if (!autoupgrade_dispenser)
+                return false;
+            level = *autoupgrade_dispenser_level;
+            break;
+
+        case CL_CLASS(CObjectTeleporter):
+            // Enabled check
+            if (!autoupgrade_teleport)
+                return false;
+            level = *autoupgrade_teleport_level;
+            break;
+        }
+
+        // Can be upgraded
+        if (upgrade_level < level && cur_ammo)
+            return true;
+    }
+    return false;
+}
+
+CachedEntity *targetBuilding(bool priority)
+{
+    float wrench_range   = re::C_TFWeaponBaseMelee::GetSwingRange(RAW_ENT(LOCAL_W));
+    CachedEntity *target = nullptr;
+    float distance       = FLT_MAX;
+    for (const auto &ent : entity_cache::valid_ents)
+    {
+        // can't exactly repair Merasmus
+        if (ent->m_Type() != ENTITY_BUILDING)
+            continue;
+
+        // yes, repair enemy buildings
+        if (ent->m_bEnemy())
+            continue;
+
+        float new_distance = g_pLocalPlayer->v_Eye.DistTo(GetBuildingPosition(ent));
+
+        // Further away than old one
+        if (new_distance >= distance)
+            continue;
+
+        auto id = ent->m_iClassID();
+
+        switch (id)
+        {
+
+        case CL_CLASS(CObjectSentrygun):
+        {
+            if (priority && *autorepair_priority != 1)
+                continue;
+            // Don't repair sentries
+            if (!autorepair_repair_sentry && !autoupgrade_sentry)
+                continue;
+            break;
+        }
+
+        case CL_CLASS(CObjectDispenser):
+        {
+            if (priority && *autorepair_priority != 2)
+                continue;
+            // Repair Dispensers check
+            if (!autorepair_repair_dispenser && !autoupgrade_dispenser)
+                continue;
+            break;
+        }
+
+        case CL_CLASS(CObjectTeleporter):
+        {
+            if (priority && *autorepair_priority != 3)
+                continue;
+            // Repair Teleporters check
+            if (!autorepair_repair_teleport && !autoupgrade_teleport)
+                continue;
+            break;
+        }
+
+        default:
+            continue;
+        }
+
+        float s_distance = ent->m_vecOrigin().DistTo(LOCAL_E->m_vecOrigin());
+
+        if (!ShouldHitBuilding(ent))
+            continue;
+
+        if (s_distance > wrench_range)
+            continue;
+
+        target = ent;
+
+        distance = new_distance;
+    }
+    return target;
+}
+
+static void BuildingAimbot()
+{
+    if (!autorepair_enabled && !autoupgrade_enabled)
+        return;
+
+    if (CE_BAD(LOCAL_E) || CE_BAD(LOCAL_W))
+        return;
+
+    CachedEntity *target = nullptr;
+    // Metal
+    int cur_ammo       = CE_INT(LOCAL_E, netvar.m_iAmmo + 12);
+    float wrench_range = re::C_TFWeaponBaseMelee::GetSwingRange(RAW_ENT(LOCAL_W));
+    // Center is further away than actual hit range for buildings, so add some more
+    wrench_range += 50.f;
+
+    if (cur_ammo == 0)
+        return;
+
+    if (g_pLocalPlayer->clazz != tf_engineer)
+        return;
+
+    if (GetWeaponMode() != weaponmode::weapon_melee)
+        return;
+
+    // Get priority buildings
+    if (autorepair_priority)
+        target = targetBuilding(true);
+    // No building found
+    if (!target)
+        targetBuilding(false);
+
+    // We have a target
+    if (target)
+    {
+        Vector angle   = GetAimAtAngles(g_pLocalPlayer->v_Eye, GetBuildingPosition(target));
+        Vector forward = GetForwardVector(g_pLocalPlayer->v_Eye, angle, wrench_range, LOCAL_E);
+
+        trace_t trace;
+
+        if (IsEntityVectorVisible(target, forward, false, MASK_SHOT, &trace))
+        {
+            if (trace.DidHit() && (IClientEntity *) trace.m_pEnt == RAW_ENT(target))
+            {
+                current_user_cmd->viewangles = angle;
+                if (autorepair_silent)
+                    g_pLocalPlayer->bUseSilentAngles = true;
+                current_user_cmd->buttons |= IN_ATTACK;
+            }
+        }
+    }
 }
 
 static void CreateMove()
 {
-
+    SandwichAim();
+    ChargeAimbot();
+    SapperAimbot();
+    BuildingAimbot();
 }
 
 DetourHook CAM_CapYaw_detour;
@@ -191,3 +548,4 @@ static InitRoutine init(
             EC::Shutdown, []() { CAM_CapYaw_detour.Shutdown(); }, "chargeaim_shutdown");
     });
 } // namespace hacks::misc_aimbot
+

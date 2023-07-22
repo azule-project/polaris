@@ -32,7 +32,6 @@ static settings::Boolean auto_crouch{ "cat-bot.auto-crouch", "false" };
 static settings::Boolean always_crouch{ "cat-bot.always-crouch", "false" };
 static settings::Boolean random_votekicks{ "cat-bot.votekicks", "false" };
 static settings::Boolean votekick_rage_only{ "cat-bot.votekicks.rage-only", "false" };
-static settings::Boolean autoReport{ "cat-bot.autoreport", "true" };
 static settings::Boolean autovote_map{ "cat-bot.autovote-map", "true" };
 
 //static settings::Boolean mvm_autoupgrade{ "mvm.autoupgrade", "false" };
@@ -553,7 +552,7 @@ Timer level_init_timer{};
 
 Timer micspam_on_timer{};
 Timer micspam_off_timer{};
-static bool patched_report;
+/*static bool patched_report;
 static std::atomic_bool can_report = false;
 static std::vector<unsigned> to_report;
 void reportall()
@@ -583,38 +582,8 @@ void reportall()
         }
     }
     can_report = true;
-}
+}*/
 
-CatCommand report("report_all", "Report all players", []() { reportall(); });
-
-CatCommand report_uid("report_steamid", "Report with steamid",
-                      [](const CCommand &args)
-                      {
-                          if (args.ArgC() < 2)
-                              return;
-                          unsigned steamid;
-                          try
-                          {
-                              steamid = std::stoi(args.Arg(1));
-                          }
-                          catch (const std::invalid_argument &)
-                          {
-                              logging::Info("Report machine broke");
-                              return;
-                          }
-                          if (!steamid)
-                          {
-                              logging::Info("Report machine broke");
-                              return;
-                          }
-                          typedef uint64_t (*ReportPlayer_t)(uint64_t, int);
-                          static uintptr_t addr1      = CSignature::GetClientSignature("55 89 E5 57 56 53 81 EC ? ? ? ? 8B 5D ? 8B 7D ? 89 D8");
-                          static auto ReportPlayer_fn = ReportPlayer_t(addr1);
-                          if (!addr1)
-                              return;
-                          CSteamID id(steamid, EUniverse::k_EUniversePublic, EAccountType::k_EAccountTypeIndividual);
-                          ReportPlayer_fn(id.ConvertToUint64(), 1);
-                      });
 
 Timer crouchcdr{};
 void smart_crouch()
@@ -673,7 +642,7 @@ CatCommand print_ammo("debug_print_ammo", "debug",
                       });
 
 static Timer disguise{};
-static Timer report_timer{};
+//static Timer report_timer{};
 /*static std::string health = "Health: 0/0";
 static std::string ammo   = "Ammo: 0/0";
 static int max_ammo;*/
@@ -720,8 +689,6 @@ static void cm()
         int classtojoin = classes[dist(mt)];
         g_IEngine->ClientCmd_Unrestricted(format("disguise ", classtojoin, " ", teamtodisguise).c_str());
     }
-    if (*autoReport && report_timer.test_and_set(60000))
-        reportall();
 }
 
 static Timer unstuck{};
@@ -732,26 +699,6 @@ void update()
     if (g_Settings.bInvalid)
         return;
 
-    if (can_report)
-    {
-        typedef uint64_t (*ReportPlayer_t)(uint64_t, int);
-        static uintptr_t addr1      = CSignature::GetClientSignature("55 89 E5 57 56 53 81 EC ? ? ? ? 8B 5D ? 8B 7D ? 89 D8");
-        static auto ReportPlayer_fn = ReportPlayer_t(addr1);
-        if (!addr1)
-            return;
-        if (report_timer2.test_and_set(400))
-        {
-            if (to_report.empty())
-                can_report = false;
-            else
-            {
-                auto rep = to_report.back();
-                to_report.pop_back();
-                CSteamID id(rep, EUniverse::k_EUniversePublic, EAccountType::k_EAccountTypeIndividual);
-                ReportPlayer_fn(id.ConvertToUint64(), 1);
-            }
-        }
-    }
     if (!*catbotmode)
         return;
 
@@ -951,3 +898,4 @@ static InitRoutine runinit(
         init();
     });
 } // namespace hacks::catbot
+

@@ -27,9 +27,7 @@ target_sources(cathook PRIVATE ${files})
 
 if (EnableVisuals)
     set(files "${CMAKE_CURRENT_LIST_DIR}/ESP.cpp"
-            "${CMAKE_CURRENT_LIST_DIR}/HeadESP.cpp"
             "${CMAKE_CURRENT_LIST_DIR}/KillfeedColor.cpp"
-            "${CMAKE_CURRENT_LIST_DIR}/Radar.cpp"
             "${CMAKE_CURRENT_LIST_DIR}/Thirdperson.cpp"
             "${CMAKE_CURRENT_LIST_DIR}/Ragdolls.cpp")
     target_sources(cathook PRIVATE ${files})

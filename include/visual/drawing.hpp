@@ -117,6 +117,7 @@ void Rectangle(float x, float y, float w, float h, rgba_t color);
 void Triangle(float x, float y, float x2, float y2, float x3, float y3, rgba_t color);
 void RectangleOutlined(float x, float y, float w, float h, rgba_t color, float thickness);
 void RectangleTextured(float x, float y, float w, float h, rgba_t color, Texture &texture, float tx, float ty, float tw, float th, float angle);
+void Rectangle4Snow(float x, float y, float w, float h, rgba_t color, float tx, float ty, float tw, float th, float angle);//temp fix
 void Circle(float x, float y, float radius, rgba_t color, float thickness, int steps);
 
 void UpdateWTS();

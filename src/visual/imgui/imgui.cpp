@@ -1953,7 +1953,7 @@ ImU32 ImGui::GetColorU32(ImU32 col)
     if (style_alpha >= 1.0f)
         return col;
     ImU32 a = (col & IM_COL32_A_MASK) >> IM_COL32_A_SHIFT;
-    a       = (ImU32)(a * style_alpha); // We don't need to clamp 0..255 because Style.Alpha is in 0..1 range.
+    a       = (ImU32) (a * style_alpha); // We don't need to clamp 0..255 because Style.Alpha is in 0..1 range.
     return (col & ~IM_COL32_A_MASK) | (a << IM_COL32_A_SHIFT);
 }
 
@@ -1967,7 +1967,7 @@ static ImGuiStorage::Pair *LowerBound(ImVector<ImGuiStorage::Pair> &data, ImGuiI
 {
     ImGuiStorage::Pair *first = data.Data;
     ImGuiStorage::Pair *last  = data.Data + data.Size;
-    size_t count              = (size_t)(last - first);
+    size_t count              = (size_t) (last - first);
     while (count > 0)
     {
         size_t count2           = count >> 1;
@@ -4936,7 +4936,7 @@ static void ImGui::UpdateManualResize(ImGuiWindow *window, const ImVec2 &size_au
     {
         bool hovered, held;
         ImRect border_rect = GetResizeBorderRect(window, border_n, grip_hover_inner_size, WINDOWS_RESIZE_FROM_EDGES_HALF_THICKNESS);
-        ButtonBehavior(border_rect, window->GetID((void *) (intptr_t)(border_n + 4)), &hovered, &held, ImGuiButtonFlags_FlattenChildren);
+        ButtonBehavior(border_rect, window->GetID((void *) (intptr_t) (border_n + 4)), &hovered, &held, ImGuiButtonFlags_FlattenChildren);
         // GetOverlayDrawList(window)->AddRect(border_rect.Min, border_rect.Max, IM_COL32(255, 255, 0, 255));
         if ((hovered && g.HoveredIdTimer > WINDOWS_RESIZE_FROM_EDGES_FEEDBACK_TIMER) || held)
         {
@@ -5739,7 +5739,7 @@ void ImGui::BringWindowToFocusFront(ImGuiWindow *window)
     for (int i = g.WindowsFocusOrder.Size - 2; i >= 0; i--) // We can ignore the front most window
         if (g.WindowsFocusOrder[i] == window)
         {
-            memmove(&g.WindowsFocusOrder[i], &g.WindowsFocusOrder[i + 1], (size_t)(g.WindowsFocusOrder.Size - i - 1) * sizeof(ImGuiWindow *));
+            memmove(&g.WindowsFocusOrder[i], &g.WindowsFocusOrder[i + 1], (size_t) (g.WindowsFocusOrder.Size - i - 1) * sizeof(ImGuiWindow *));
             g.WindowsFocusOrder[g.WindowsFocusOrder.Size - 1] = window;
             break;
         }
@@ -5754,7 +5754,7 @@ void ImGui::BringWindowToDisplayFront(ImGuiWindow *window)
     for (int i = g.Windows.Size - 2; i >= 0; i--) // We can ignore the front most window
         if (g.Windows[i] == window)
         {
-            memmove(&g.Windows[i], &g.Windows[i + 1], (size_t)(g.Windows.Size - i - 1) * sizeof(ImGuiWindow *));
+            memmove(&g.Windows[i], &g.Windows[i + 1], (size_t) (g.Windows.Size - i - 1) * sizeof(ImGuiWindow *));
             g.Windows[g.Windows.Size - 1] = window;
             break;
         }
@@ -7500,7 +7500,7 @@ static bool NavScoreItem(ImGuiNavMoveResult *result, ImRect cand)
     {
         if (ImGui::IsKeyPressedMap(ImGuiKey_C))
         {
-            g.NavMoveDirLast                               = (ImGuiDir)((g.NavMoveDirLast + 1) & 3);
+            g.NavMoveDirLast                               = (ImGuiDir) ((g.NavMoveDirLast + 1) & 3);
             g.IO.KeysDownDuration[g.IO.KeyMap[ImGuiKey_C]] = 0.01f;
         }
         if (quadrant == g.NavMoveDir)
@@ -8413,7 +8413,7 @@ static void ImGui::NavUpdateWindowing()
         }
         g.NavDisableHighlight  = false;
         g.NavDisableMouseHover = true;
-        NavRestoreLayer((g.NavWindow->DC.NavLayerActiveMask & (1 << ImGuiNavLayer_Menu)) ? (ImGuiNavLayer)((int) g.NavLayer ^ 1) : ImGuiNavLayer_Main);
+        NavRestoreLayer((g.NavWindow->DC.NavLayerActiveMask & (1 << ImGuiNavLayer_Menu)) ? (ImGuiNavLayer) ((int) g.NavLayer ^ 1) : ImGuiNavLayer_Main);
     }
 }
 
@@ -9589,7 +9589,7 @@ static void SetClipboardTextFn_DefaultImpl(void *, const char *text)
     g.PrivateClipboard.clear();
     const char *text_end = text + strlen(text);
     g.PrivateClipboard.resize((int) (text_end - text) + 1);
-    memcpy(&g.PrivateClipboard[0], text, (size_t)(text_end - text));
+    memcpy(&g.PrivateClipboard[0], text, (size_t) (text_end - text));
     g.PrivateClipboard[(int) (text_end - text)] = 0;
 }
 

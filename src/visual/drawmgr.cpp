@@ -4,7 +4,6 @@
  *  Created on: May 22, 2017
  *      Author: nullifiedcat
  */
-
 #include <MiscTemporary.hpp>
 #include <hacks/Aimbot.hpp>
 #include <hacks/hacklist.hpp>
@@ -27,8 +26,11 @@
 
 static settings::Boolean info_text{ "hack-info.enable", "true" };
 static settings::Boolean info_text_min{ "hack-info.minimal", "false" };
+static settings::Boolean info_name{ "hack-info.name", "Weebware" };
+static settings::Int info_style{ "hack-info.style", "0" };
 static settings::Int info_x{"hack-info.x", "10"};
 static settings::Int info_y{"hack-info.y", "10"};
+static settings::Float info_alpha{"hack-info.alpha", "0.7"};
 
 void RenderCheatVisuals()
 {
@@ -69,17 +71,36 @@ void DrawCheatVisuals()
         PROF_SECTION(DRAW_info)
         std::string name_s, reason_s;
         PROF_SECTION(PT_info_text)
-        if (*info_text && (!g_IEngine->IsConnected() || g_IEngine->Con_IsVisible()))
+        #if ENABLE_GUI
+        if (*info_text/* && (!g_IEngine->IsConnected() || g_IEngine->Con_IsVisible())*/)
         {
-            auto color = colors::RainbowCurrent();
+        if (*info_style ==  0) { //new
+        //replace std::localtime
+        char timeString[10];
+        time_t current_time;
+        struct tm *time_info;
+        time(&current_time);
+        time_info = localtime(&current_time);
+        //std::localtime ^
+        strftime(timeString, sizeof(timeString), "%H:%M:%S", time_info);
+
+        
+        float w, h;
+        //make use of info_name variable
+        /*fonts::center_screen->stringSize("Weebware", &w, &h);
+        draw::Rectangle(*info_x - 5, *info_y - 5, w + 10, h + 10, colors::Transparent(colors::black, *info_alpha));
+         draw::String(*info_x, *info_y, colors::gui, "Weebware", *fonts::center_screen);*/
+        }
+        else if(*info_style == 1) {//old "90s"
+           auto color = colors::RainbowCurrent();
             color.a    = 1.0f;
-            AddSideString("cathook by weebware", color);
-            if (!*info_text_min)
+            AddSideString("Weebware", color);
+        }
+           
+            if (!*info_text_min && !*info_style == 0)
             {
-                AddSideString(hack::GetVersion(), colors::gui); // GitHub commit and date
-                AddSideString(hack::GetType(), colors::gui);    // Compile type
-#if ENABLE_GUI
-                AddSideString("Press '" + open_gui_button.toString() + "' key to navigate the menu.", colors::gui);
+                AddSideString("Press '" + open_gui_button.toString() + "' key.", colors::gui);
+                AddSideString(hack::GetVersion(), colors::gui);
 #endif
             }
         }

@@ -149,3 +149,4 @@ static InitRoutine init(
             "shutdown_autojoin");
     });
 } // namespace hacks::autojoin
+
