@@ -8,7 +8,7 @@
 [![License](https://img.shields.io/github/license/weebwares/cathook.svg?style=flat-square)](LICENSE)
 [![Issues](https://img.shields.io/github/issues/weebwares/cathook.svg?style=flat-square)](https://github.com/weebwares/cathook/issues)
 
-> **Warning**<br/> This version of cathook are no longer maintained and is now considered obsolete.
+> **Warning**<br/> This version of cathook are no longer maintained.
 
 ## Requirements
 * A linux computer capable of running TF2.
