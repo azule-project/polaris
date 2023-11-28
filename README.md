@@ -1,5 +1,4 @@
-# Cathook Training Software
-![banner](https://user-images.githubusercontent.com/13179138/134817300-d4865695-af33-4e83-a017-5ec0d31ea0a1.png)
+# GNU Polaris x86
 
 [![C++](https://img.shields.io/badge/language-C%2B%2B-%23f34b7d.svg?style=flat-square)](https://en.wikipedia.org/wiki/C%2B%2B)
 [![TF2](https://img.shields.io/badge/game-TF2-blue.svg?style=flat-square)](https://store.steampowered.com/app/440/Team_Fortress_2/)
@@ -8,16 +7,16 @@
 [![License](https://img.shields.io/github/license/weebwares/cathook.svg?style=flat-square)](LICENSE)
 [![Issues](https://img.shields.io/github/issues/weebwares/cathook.svg?style=flat-square)](https://github.com/weebwares/cathook/issues)
 
-> **Warning**<br/> This version of cathook are no longer maintained.
+> **Warning**<br/> This version of cathook is outdated and broken.
 
 ## Requirements
-* A linux computer capable of running TF2.
+* A linux computer with the minimum requirements to play TF2 at a playable framerate.
 * Atleast 4 GB ram installed with 120 GB disk space per linux computer configuration.
 
 ## Downloading
 Open a terminal window and enter this command to your terminal:
 
-    bash <(wget -qO- https://raw.githubusercontent.com/weebwares/One-in-all-cathook-install/master/install-all)
+    bash <(wget -qO- https://raw.githubusercontent.com/azule-project/polaris-installer/master/install-all)
 
 This bash script will automatically installs cathook to your linux computer.
 
